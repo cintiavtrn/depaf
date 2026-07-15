@@ -100,6 +100,8 @@ body{background:var(--paper);color:var(--carvao);font-family:'IBM Plex Sans',san
 }
 .tag-exemplo{background:var(--mostarda);color:#2a2205}
 .tag-pendente{border:1.5px dashed #b8ae95;color:#8a8272;background:none}
+
+/* ---------- dashboard ---------- */
 .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:2px;background:var(--carvao);border:2px solid var(--carvao);margin-bottom:16px}
 .kpi-card{background:#fff;padding:16px 18px}
 .kpi-label{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;color:#6b6353;text-transform:uppercase}
@@ -116,11 +118,6 @@ body{background:var(--paper);color:var(--carvao);font-family:'IBM Plex Sans',san
 .filter-chip{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;background:var(--carvao);color:var(--paper);padding:5px 8px 5px 10px}
 .filter-chip button{background:none;border:none;color:var(--paper);cursor:pointer;font-size:12px;opacity:.7}
 .filter-chip button:hover{opacity:1}
-.dash-tabela th.sortable{cursor:pointer;user-select:none}
-.dash-tabela th.sortable:hover{color:var(--carvao)}
-.dash-tabela th.sortable::after{content:"⇅";margin-left:4px;opacity:.4;font-size:9px}
-.dash-tabela th.sort-asc::after{content:"▲";opacity:1}
-.dash-tabela th.sort-desc::after{content:"▼";opacity:1}
 
 /* ---------- projetos ---------- */
 .projeto-card{background:#fff;border:2px solid var(--carvao);padding:20px;margin-bottom:2px}
@@ -166,6 +163,12 @@ body{background:var(--paper);color:var(--carvao);font-family:'IBM Plex Sans',san
 .dash-tabela tr.dim{opacity:0.35}
 .dash-tabela tr[data-cat]{cursor:pointer}
 .dash-tabela tr[data-cat]:hover{background:var(--paper-line)}
+.dash-tabela th.sortable{cursor:pointer;user-select:none}
+.dash-tabela th.sortable:hover{color:var(--carvao)}
+.dash-tabela th.sortable::after{content:"⇅";margin-left:4px;opacity:.4;font-size:9px}
+.dash-tabela th.sort-asc::after{content:"▲";opacity:1}
+.dash-tabela th.sort-desc::after{content:"▼";opacity:1}
+
 .dash-chart-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
 .dash-chart-head h4{margin-bottom:0}
 .dash-toggle{display:flex;border:1.5px solid var(--carvao)}
@@ -217,8 +220,9 @@ footer .nota{font-family:'IBM Plex Mono',monospace;font-size:11px;max-width:44ch
 </footer>
 
 <script>
-// Ícones do DEPAF como markup SVG inline (herdam cor via CSS currentColor).
-// Script global (sem type=module), funciona direto via <script src> no GitHub Pages.
+// =====================================================================
+// 1. ÍCONES E FUNÇÕES DE DESENHO (SVG)
+// =====================================================================
 const ICONS = {
   brasao_pcba: "<svg viewBox=\"0 0 120 140\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"miter\" stroke-linecap=\"square\" xmlns=\"http://www.w3.org/2000/svg\">\n  <g>\n    <polygon points=\"60,6 64,18 76,18 66,25 70,37 60,30 50,37 54,25 44,18 56,18\" />\n  </g>\n  <g>\n    <path d=\"M 22 46 L 22 42 L 30 42 L 30 46 L 38 46 L 38 42 L 46 42 L 46 46 L 54 46 L 54 42 L 66 42 L 66 46 L 74 46 L 74 42 L 82 42 L 82 46 L 90 46 L 90 42 L 98 42 L 98 46 L 98 96 L 60 118 L 22 96 Z\" />\n    <path d=\"M 28 52 L 28 48 L 34 48 L 34 52 L 40 52 L 40 48 L 46 48 L 46 52 L 54 52 L 54 48 L 66 48 L 66 52 L 74 52 L 74 48 L 80 48 L 80 52 L 86 52 L 86 48 L 92 48 L 92 52 L 92 93 L 60 112 L 28 93 Z\" />\n  </g>\n  <g>\n    <line x1=\"60\" y1=\"58\" x2=\"60\" y2=\"104\" />\n    <line x1=\"48\" y1=\"72\" x2=\"72\" y2=\"72\" />\n    <line x1=\"48\" y1=\"80\" x2=\"72\" y2=\"80\" />\n    <line x1=\"48\" y1=\"72\" x2=\"48\" y2=\"80\" />\n    <line x1=\"72\" y1=\"72\" x2=\"72\" y2=\"80\" />\n  </g>\n  <g>\n    <path d=\"M 42 100 L 42 96 L 45 96 L 45 100 L 48 100 L 48 96 L 51 96 L 51 100 L 51 108 L 42 108 Z\" />\n    <rect x=\"45\" y=\"102\" width=\"3\" height=\"6\" />\n    <path d=\"M 69 100 L 69 96 L 72 96 L 72 100 L 75 100 L 75 96 L 78 96 L 78 100 L 78 108 L 69 108 Z\" />\n    <rect x=\"72\" y=\"102\" width=\"3\" height=\"6\" />\n  </g>\n  <g stroke-width=\"1.5\">\n    <path d=\"M 22 96 L 12 108 L 18 118 L 30 122 L 44 126 L 60 128\" />\n    <line x1=\"16\" y1=\"110\" x2=\"22\" y2=\"106\" />\n    <line x1=\"22\" y1=\"118\" x2=\"28\" y2=\"114\" />\n    <line x1=\"30\" y1=\"122\" x2=\"34\" y2=\"116\" />\n    <line x1=\"40\" y1=\"124\" x2=\"44\" y2=\"118\" />\n    <line x1=\"50\" y1=\"126\" x2=\"54\" y2=\"120\" />\n    <path d=\"M 98 96 L 108 108 L 102 118 L 90 122 L 76 126 L 60 128\" />\n    <line x1=\"104\" y1=\"110\" x2=\"98\" y2=\"106\" />\n    <line x1=\"98\" y1=\"118\" x2=\"92\" y2=\"114\" />\n    <line x1=\"90\" y1=\"122\" x2=\"86\" y2=\"116\" />\n    <line x1=\"80\" y1=\"124\" x2=\"76\" y2=\"118\" />\n    <line x1=\"70\" y1=\"126\" x2=\"66\" y2=\"120\" />\n    <polygon points=\"54,128 66,128 63,134 57,134\" />\n  </g>\n</svg>",
   competencia_balanca: "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" xmlns=\"http://www.w3.org/2000/svg\">\n  <g>\n    <line x1=\"32\" y1=\"10\" x2=\"32\" y2=\"52\" />\n    <line x1=\"20\" y1=\"52\" x2=\"44\" y2=\"52\" />\n    <line x1=\"10\" y1=\"18\" x2=\"54\" y2=\"18\" />\n    <polygon points=\"10,18 4,32 16,32\" />\n    <polygon points=\"54,18 48,32 60,32\" />\n    <circle cx=\"32\" cy=\"10\" r=\"2\" fill=\"currentColor\" stroke=\"none\" />\n  </g>\n</svg>",
@@ -231,7 +235,7 @@ const ICONS = {
   competencia_portaria: "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" xmlns=\"http://www.w3.org/2000/svg\">\n  <g>\n    <line x1=\"8\" y1=\"52\" x2=\"24\" y2=\"52\" />\n    <line x1=\"40\" y1=\"52\" x2=\"56\" y2=\"52\" />\n    <line x1=\"24\" y1=\"52\" x2=\"24\" y2=\"16\" />\n    <path d=\"M 24 16 A 36 36 0 0 1 40 52\" />\n    <circle cx=\"38\" cy=\"48\" r=\"1.5\" fill=\"currentColor\" stroke=\"none\" />\n  </g>\n</svg>",
   competencia_tombamento: "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" xmlns=\"http://www.w3.org/2000/svg\">\n  <g>\n    <polygon points=\"10,18 54,18 54,46 10,46\" />\n    <circle cx=\"16\" cy=\"22\" r=\"1.5\" fill=\"currentColor\" stroke=\"none\" />\n    <circle cx=\"48\" cy=\"22\" r=\"1.5\" fill=\"currentColor\" stroke=\"none\" />\n    <circle cx=\"16\" cy=\"42\" r=\"1.5\" fill=\"currentColor\" stroke=\"none\" />\n    <circle cx=\"48\" cy=\"42\" r=\"1.5\" fill=\"currentColor\" stroke=\"none\" />\n    <line x1=\"18\" y1=\"28\" x2=\"46\" y2=\"28\" />\n    <text x=\"32\" y=\"40\" text-anchor=\"middle\" font-family=\"monospace\" font-size=\"9\" fill=\"currentColor\" stroke=\"none\" letter-spacing=\"1\">N\u00b0</text>\n  </g>\n</svg>",
   cota_horizontal: "<svg viewBox=\"0 0 240 28\" width=\"240\" height=\"28\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" xmlns=\"http://www.w3.org/2000/svg\">\n  <line x1=\"4\" y1=\"18\" x2=\"236\" y2=\"18\" />\n  <line x1=\"4\" y1=\"10\" x2=\"4\" y2=\"26\" />\n  <line x1=\"236\" y1=\"10\" x2=\"236\" y2=\"26\" />\n  <polygon points=\"10,18 4,15 4,21\" fill=\"currentColor\" stroke=\"none\" />\n  <polygon points=\"230,18 236,15 236,21\" fill=\"currentColor\" stroke=\"none\" />\n  <rect x=\"94\" y=\"4\" width=\"52\" height=\"12\" fill=\"var(--paper, #ffffff)\" stroke=\"none\" />\n  <text x=\"120\" y=\"14\" text-anchor=\"middle\" font-family=\"monospace\" font-size=\"10\" fill=\"currentColor\" stroke=\"none\" letter-spacing=\"1\">64,00</text>\n</svg>",
-  distintivo_pcba: "<svg viewBox=\"0 0 140 170\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"miter\" stroke-linecap=\"square\" xmlns=\"http://www.w3.org/2000/svg\">\n  <defs>\n    <g id=\"brasao-pcba-mark\">\n      <g>\n        <polygon points=\"60,6 64,18 76,18 66,25 70,37 60,30 50,37 54,25 44,18 56,18\" />\n      </g>\n      <g>\n        <path d=\"M 22 46 L 22 42 L 30 42 L 30 46 L 38 46 L 38 42 L 46 42 L 46 46 L 54 46 L 54 42 L 66 42 L 66 46 L 74 46 L 74 42 L 82 42 L 82 46 L 90 46 L 90 42 L 98 42 L 98 46 L 98 96 L 60 118 L 22 96 Z\" />\n        <path d=\"M 28 52 L 28 48 L 34 48 L 34 52 L 40 52 L 40 48 L 46 48 L 46 52 L 54 52 L 54 48 L 66 48 L 66 52 L 74 52 L 74 48 L 80 48 L 80 52 L 86 52 L 86 48 L 92 48 L 92 52 L 92 93 L 60 112 L 28 93 Z\" />\n      </g>\n      <g>\n        <line x1=\"60\" y1=\"58\" x2=\"60\" y2=\"104\" />\n        <line x1=\"48\" y1=\"72\" x2=\"72\" y2=\"72\" />\n        <line x1=\"48\" y1=\"80\" x2=\"72\" y2=\"80\" />\n        <line x1=\"48\" y1=\"72\" x2=\"48\" y2=\"80\" />\n        <line x1=\"72\" y1=\"72\" x2=\"72\" y2=\"80\" />\n      </g>\n      <g>\n        <path d=\"M 42 100 L 42 96 L 45 96 L 45 100 L 48 100 L 48 96 L 51 96 L 51 100 L 51 108 L 42 108 Z\" />\n        <rect x=\"45\" y=\"102\" width=\"3\" height=\"6\" />\n        <path d=\"M 69 100 L 69 96 L 72 96 L 72 100 L 75 100 L 75 96 L 78 96 L 78 100 L 78 108 L 69 108 Z\" />\n        <rect x=\"72\" y=\"102\" width=\"3\" height=\"6\" />\n      </g>\n      <g stroke-width=\"1.5\">\n        <path d=\"M 22 96 L 12 108 L 18 118 L 30 122 L 44 126 L 60 128\" />\n        <line x1=\"16\" y1=\"110\" x2=\"22\" y2=\"106\" />\n        <line x1=\"22\" y1=\"118\" x2=\"28\" y2=\"114\" />\n        <line x1=\"30\" y1=\"122\" x2=\"34\" y2=\"116\" />\n        <line x1=\"40\" y1=\"124\" x2=\"44\" y2=\"118\" />\n        <line x1=\"50\" y1=\"126\" x2=\"54\" y2=\"120\" />\n        <path d=\"M 98 96 L 108 108 L 102 118 L 90 122 L 76 126 L 60 128\" />\n        <line x1=\"104\" y1=\"110\" x2=\"98\" y2=\"106\" />\n        <line x1=\"98\" y1=\"118\" x2=\"92\" y2=\"114\" />\n        <line x1=\"90\" y1=\"122\" x2=\"86\" y2=\"116\" />\n        <line x1=\"80\" y1=\"124\" x2=\"76\" y2=\"118\" />\n        <line x1=\"70\" y1=\"126\" x2=\"66\" y2=\"120\" />\n        <polygon points=\"54,128 66,128 63,134 57,134\" />\n      </g>\n    </g>\n  </defs>\n\n  <!-- Placa externa (escudo chanfrado, s\u00f3 reto) -->\n  <path d=\"M 20 22 L 120 22 L 130 40 L 130 118 L 70 162 L 10 118 L 10 40 Z\" />\n  <!-- Placa interna (offset s\u00f3lido) -->\n  <path d=\"M 26 30 L 114 30 L 122 44 L 122 114 L 70 154 L 18 114 L 18 44 Z\" />\n\n  <!-- Fita superior \"POL\u00cdCIA\" -->\n  <g>\n    <polygon points=\"18,36 122,36 128,44 122,52 18,52 24,44\" />\n    <polygon points=\"10,40 18,36 24,44 18,52 10,48\" />\n    <polygon points=\"130,40 122,36 116,44 122,52 130,48\" />\n    <text x=\"70\" y=\"47\" text-anchor=\"middle\" font-family=\"monospace\" font-weight=\"700\" font-size=\"9\" letter-spacing=\"2\" fill=\"currentColor\" stroke=\"none\">POL\u00cdCIA</text>\n  </g>\n\n  <!-- Bras\u00e3o central (embutido, reduzido) -->\n  <use href=\"#brasao-pcba-mark\" transform=\"translate(35 54) scale(0.42)\" />\n\n  <!-- Fita inferior \"CIVIL \u00b7 BA\" -->\n  <g>\n    <polygon points=\"26,130 114,130 120,138 114,146 26,146 32,138\" />\n    <text x=\"70\" y=\"141\" text-anchor=\"middle\" font-family=\"monospace\" font-weight=\"700\" font-size=\"9\" letter-spacing=\"3\" fill=\"currentColor\" stroke=\"none\">CIVIL \u00b7 BA</text>\n  </g>\n</svg>",
+  distintivo_pcba: "<svg viewBox=\"0 0 140 170\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"miter\" stroke-linecap=\"square\" xmlns=\"http://www.w3.org/2000/svg\">\n  <defs>\n    <g id=\"brasao-pcba-mark\">\n      <g>\n        <polygon points=\"60,6 64,18 76,18 66,25 70,37 60,30 50,37 54,25 44,18 56,18\" />\n      </g>\n      <g>\n        <path d=\"M 22 46 L 22 42 L 30 42 L 30 46 L 38 46 L 38 42 L 46 42 L 46 46 L 54 46 L 54 42 L 66 42 L 66 46 L 74 46 L 74 42 L 82 42 L 82 46 L 90 46 L 90 42 L 98 42 L 98 46 L 98 96 L 60 118 L 22 96 Z\" />\n        <path d=\"M 28 52 L 28 48 L 34 48 L 34 52 L 40 52 L 40 48 L 46 48 L 46 52 L 54 52 L 54 48 L 66 48 L 66 52 L 74 52 L 74 48 L 80 48 L 80 52 L 86 52 L 86 48 L 92 48 L 92 52 L 92 93 L 60 112 L 28 93 Z\" />\n      </g>\n      <g>\n        <line x1=\"60\" y1=\"58\" x2=\"60\" y2=\"104\" />\n        <line x1=\"48\" y1=\"72\" x2=\"72\" y2=\"72\" />\n        <line x1=\"48\" y1=\"80\" x2=\"72\" y2=\"80\" />\n        <line x1=\"48\" y1=\"72\" x2=\"48\" y2=\"80\" />\n        <line x1=\"72\" y1=\"72\" x2=\"72\" y2=\"80\" />\n      </g>\n      <g>\n        <path d=\"M 42 100 L 42 96 L 45 96 L 45 100 L 48 100 L 48 96 L 51 96 L 51 100 L 51 108 L 42 108 Z\" />\n        <rect x=\"45\" y=\"102\" width=\"3\" height=\"6\" />\n        <path d=\"M 69 100 L 69 96 L 72 96 L 72 100 L 75 100 L 75 96 L 78 96 L 78 100 L 78 108 L 69 108 Z\" />\n        <rect x=\"72\" y=\"102\" width=\"3\" height=\"6\" />\n      </g>\n      <g stroke-width=\"1.5\">\n        <path d=\"M 22 96 L 12 108 L 18 118 L 30 122 L 44 126 L 60 128\" />\n        <line x1=\"16\" y1=\"110\" x2=\"22\" y2=\"106\" />\n        <line x1=\"22\" y1=\"118\" x2=\"28\" y2=\"114\" />\n        <line x1=\"30\" y1=\"122\" x2=\"34\" y2=\"116\" />\n        <line x1=\"40\" y1=\"124\" x2=\"44\" y2=\"118\" />\n        <line x1=\"50\" y1=\"126\" x2=\"54\" y2=\"120\" />\n        <path d=\"M 98 96 L 108 108 L 102 118 L 90 122 L 76 126 L 60 128\" />\n        <line x1=\"104\" y1=\"110\" x2=\"98\" y2=\"106\" />\n        <line x1=\"98\" y1=\"118\" x2=\"92\" y2=\"114\" />\n        <line x1=\"90\" y1=\"122\" x2=\"86\" y2=\"116\" />\n        <line x1=\"80\" y1=\"124\" x2=\"76\" y2=\"118\" />\n        <line x1=\"70\" y1=\"126\" x2=\"66\" y2=\"120\" />\n        <polygon points=\"54,128 66,128 63,134 57,134\" />\n      </g>\n    </g>\n  </defs>\n\n  \n  <path d=\"M 20 22 L 120 22 L 130 40 L 130 118 L 70 162 L 10 118 L 10 40 Z\" />\n  \n  <path d=\"M 26 30 L 114 30 L 122 44 L 122 114 L 70 154 L 18 114 L 18 44 Z\" />\n\n  \n  <g>\n    <polygon points=\"18,36 122,36 128,44 122,52 18,52 24,44\" />\n    <polygon points=\"10,40 18,36 24,44 18,52 10,48\" />\n    <polygon points=\"130,40 122,36 116,44 122,52 130,48\" />\n    <text x=\"70\" y=\"47\" text-anchor=\"middle\" font-family=\"monospace\" font-weight=\"700\" font-size=\"9\" letter-spacing=\"2\" fill=\"currentColor\" stroke=\"none\">POL\u00cdCIA</text>\n  </g>\n\n  \n  <use href=\"#brasao-pcba-mark\" transform=\"translate(35 54) scale(0.42)\" />\n\n  \n  <g>\n    <polygon points=\"26,130 114,130 120,138 114,146 26,146 32,138\" />\n    <text x=\"70\" y=\"141\" text-anchor=\"middle\" font-family=\"monospace\" font-weight=\"700\" font-size=\"9\" letter-spacing=\"3\" fill=\"currentColor\" stroke=\"none\">CIVIL \u00b7 BA</text>\n  </g>\n</svg>",
   moeda: "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" xmlns=\"http://www.w3.org/2000/svg\">\n  <g>\n    <circle cx=\"32\" cy=\"32\" r=\"22\" />\n    <line x1=\"54\" y1=\"32\" x2=\"60\" y2=\"32\" />\n    <line x1=\"48\" y1=\"48\" x2=\"52\" y2=\"52\" />\n    <line x1=\"32\" y1=\"54\" x2=\"32\" y2=\"60\" />\n    <line x1=\"16\" y1=\"48\" x2=\"12\" y2=\"52\" />\n    <line x1=\"10\" y1=\"32\" x2=\"4\" y2=\"32\" />\n    <line x1=\"16\" y1=\"16\" x2=\"12\" y2=\"12\" />\n    <line x1=\"32\" y1=\"10\" x2=\"32\" y2=\"4\" />\n    <line x1=\"48\" y1=\"16\" x2=\"52\" y2=\"12\" />\n    <line x1=\"32\" y1=\"24\" x2=\"32\" y2=\"40\" />\n    <line x1=\"24\" y1=\"32\" x2=\"40\" y2=\"32\" />\n  </g>\n</svg>",
   predio: "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" xmlns=\"http://www.w3.org/2000/svg\">\n  <g>\n    <rect x=\"14\" y=\"8\" width=\"36\" height=\"48\" />\n    <line x1=\"8\" y1=\"56\" x2=\"56\" y2=\"56\" />\n    <rect x=\"20\" y=\"16\" width=\"6\" height=\"6\" />\n    <rect x=\"32\" y=\"16\" width=\"6\" height=\"6\" />\n    <rect x=\"20\" y=\"28\" width=\"6\" height=\"6\" />\n    <rect x=\"32\" y=\"28\" width=\"6\" height=\"6\" />\n    <rect x=\"20\" y=\"40\" width=\"6\" height=\"6\" />\n    <rect x=\"32\" y=\"40\" width=\"6\" height=\"6\" />\n  </g>\n</svg>",
   projeto_investigacao: "<svg viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" xmlns=\"http://www.w3.org/2000/svg\">\n  <g>\n    <rect x=\"8\" y=\"8\" width=\"48\" height=\"48\" />\n    <rect x=\"24\" y=\"26\" width=\"16\" height=\"12\" />\n    <rect x=\"14\" y=\"14\" width=\"6\" height=\"6\" />\n    <rect x=\"44\" y=\"14\" width=\"6\" height=\"6\" />\n    <rect x=\"14\" y=\"44\" width=\"6\" height=\"6\" />\n    <rect x=\"44\" y=\"44\" width=\"6\" height=\"6\" />\n  </g>\n</svg>",
@@ -269,7 +273,6 @@ function barChartSVG(pontos, cor) {
   const max = Math.max(...pontos.map(p => p.valor), 1);
   const bw = (w - padL - padR) / pontos.length;
   
-  // CRIANDO O GRID AQUI DENTRO (EXCLUSIVO PARA AS BARRAS)
   let grid = `<g class="chart-grid">`;
   for(let gy=1; gy<=3; gy++){
     const yy = padT + ((h-padT-padB)/4)*gy;
@@ -289,7 +292,6 @@ function barChartSVG(pontos, cor) {
     bars += `<text x="${(x + bwReal / 2).toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.valor}</text>`;
   });
   
-  // RETORNANDO O GRID JUNTO COM AS BARRAS
   return `<svg viewBox="0 0 ${w} ${h}" width="100%" xmlns="http://www.w3.org/2000/svg">${grid}${bars}</svg>`;
 }
 
@@ -298,7 +300,6 @@ function lineChartSVG(pontos, cor) {
   const max = Math.max(...pontos.map(p => p.valor), 1);
   const stepX = (w - padL - padR) / (pontos.length - 1 || 1);
   
-  // CRIANDO O GRID AQUI DENTRO (EXCLUSIVO PARA AS LINHAS)
   let grid = `<g class="chart-grid">`;
   for(let gy=1; gy<=3; gy++){
     const yy = padT + ((h-padT-padB)/4)*gy;
@@ -317,7 +318,6 @@ function lineChartSVG(pontos, cor) {
     labels += `<text x="${x.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.valor}</text>`;
   });
   
-  // RETORNANDO O GRID JUNTO COM AS LINHAS
   return `<svg viewBox="0 0 ${w} ${h}" width="100%" xmlns="http://www.w3.org/2000/svg">${grid}<path d="${path}" fill="none" stroke="${cor}" stroke-width="2" />${dots}${labels}</svg>`;
 }
 
@@ -372,30 +372,364 @@ function donutChartSVG(categorias, selectedLabel) {
     <text x="${cx}" y="${cy + 13}" text-anchor="middle" font-family="monospace" font-size="8" letter-spacing="1" fill="#6b6353">${catSel ? "SELECIONADO" : "TOTAL"}</text>
   </svg>`;
 }
-</script>
-<script>
-// Monta o hub (brasão central + pontos radiais) e as telas dedicadas de cada portal.
 
+// =====================================================================
+// 2. DADOS DO PORTAL
+// =====================================================================
+const PORTAIS = [
+  {
+    id: "pessoal",
+    label: "Pessoal",
+    icon: "competencia_folha_pagamento",
+    cor: "var(--mostarda)",
+    artigos: ["I"],
+    intro: "Elabora a folha de pagamento e controla a lotação e vacância dos cargos permanentes e temporários da Polícia Civil.",
+    dados: [
+      { rotulo: "Servidores lotados no DEPAF", valor: "312", exemplo: true },
+      { rotulo: "Cargos em vacância", valor: "28", exemplo: true },
+      { rotulo: "Admissões no último concurso", valor: "45", exemplo: true },
+      { rotulo: "Coordenador do setor", valor: "A preencher", exemplo: false, pendente: true }
+    ]
+  },
+  {
+    id: "normas",
+    label: "Normas e Modernização",
+    icon: "competencia_normas",
+    cor: "var(--terracota)",
+    artigos: ["II", "VI"],
+    intro: "Redige decretos, títulos, normas e procedimentos, e conduz a modernização administrativa em articulação com a SSP.",
+    dados: [
+      { rotulo: "Normas emitidas no ano", valor: "64", exemplo: true },
+      { rotulo: "Projetos de modernização em curso", valor: "3", exemplo: true },
+      { rotulo: "Coordenador do setor", valor: "A preencher", exemplo: false, pendente: true }
+    ]
+  },
+  {
+    id: "patrimonio",
+    label: "Patrimônio e Bens",
+    icon: "competencia_tombamento",
+    cor: "var(--oliva)",
+    artigos: ["III", "VII"],
+    intro: "Cadastra, tomba e controla bens e material de consumo — inclui material de escritório e de expediente das unidades — além de guardar bens apreendidos ou arrecadados vinculados a ocorrências. Armamento e munição não entram aqui: ficam com a Coordenação de Fiscalização de Produtos Controlados (CFPC), unidade à parte do DEPAF.",
+    dados: [
+      { rotulo: "Itens tombados no cadastro", valor: "1.842", exemplo: true },
+      { rotulo: "Requisições de material de expediente no mês", valor: "57", exemplo: true },
+      { rotulo: "Bens apreendidos sob guarda", valor: "96", exemplo: true },
+      { rotulo: "Itens abaixo do estoque mínimo", valor: "12", exemplo: true },
+      { rotulo: "Tempo médio de atendimento do pedido", valor: "9 dias", exemplo: true },
+      { rotulo: "Atendimento — unidades da capital", valor: "6 dias", exemplo: true },
+      { rotulo: "Atendimento — unidades do interior", valor: "17 dias", exemplo: true },
+      { rotulo: "Saldo consumido da Ata de Registro de Preços vigente", valor: "48%", exemplo: true },
+      { rotulo: "Classe A — reposição mensal", valor: "Munição, combustível, perícia", exemplo: true },
+      { rotulo: "Classe C — reposição trimestral/semestral", valor: "Material de escritório comum", exemplo: true },
+      { rotulo: "Coordenador do setor", valor: "A preencher", exemplo: false, pendente: true }
+    ]
+  },
+  {
+    id: "frota",
+    label: "Frota",
+    icon: "viatura",
+    cor: "var(--oliva)",
+    artigos: ["IV"],
+    intro: "Mantém, abastece e planeja a expansão da frota de viaturas, prevendo renovação e adequação ao serviço.",
+    dados: [
+      { rotulo: "Frota total", valor: "187 viaturas", exemplo: true },
+      { rotulo: "Compacto / passeio", valor: "94 unidades", exemplo: true },
+      { rotulo: "SUV / utilitário", valor: "68 unidades", exemplo: true },
+      { rotulo: "Especial / blindado", valor: "25 unidades", exemplo: true },
+      { rotulo: "Moto", valor: "A preencher", exemplo: false, pendente: true },
+      { rotulo: "Idade média da frota", valor: "6 anos", exemplo: true },
+      { rotulo: "Viaturas ativas", valor: "94%", exemplo: true },
+      { rotulo: "Em manutenção no momento", valor: "9 viaturas", exemplo: true },
+      { rotulo: "Tempo médio parado em manutenção", valor: "5 dias", exemplo: true },
+      { rotulo: "Taxa de renovação anual", valor: "8%", exemplo: true },
+      { rotulo: "Custo médio de manutenção por viatura/ano", valor: "R$ 6.200,00", exemplo: true },
+      { rotulo: "Aquisição — compra direta", valor: "62%", exemplo: true },
+      { rotulo: "Aquisição — convênio federal", valor: "31%", exemplo: true },
+      { rotulo: "Aquisição — doação", valor: "7%", exemplo: true },
+      { rotulo: "Coordenador do setor", valor: "A preencher", exemplo: false, pendente: true }
+    ]
+  },
+  {
+    id: "infraestrutura",
+    label: "Infraestrutura",
+    icon: "predio",
+    cor: "var(--oliva)",
+    artigos: ["V"],
+    intro: "Coordena portaria, recepção, segurança patrimonial, limpeza, abastecimento de energia e água, e a manutenção predial das instalações e dependências.",
+    dados: [
+      { rotulo: "Unidades sob manutenção ativa", valor: "14", exemplo: true },
+      { rotulo: "Chamados de manutenção no mês", valor: "38", exemplo: true },
+      { rotulo: "Coordenador do setor", valor: "A preencher", exemplo: false, pendente: true }
+    ]
+  },
+  {
+    id: "orcamento",
+    label: "Orçamento e Finanças",
+    icon: "moeda",
+    cor: "var(--tinta)",
+    artigos: ["VIII", "IX"],
+    intro: "Programa, orça, acompanha e executa a administração financeira e contábil, em articulação com o sistema estadual.",
+    dados: [
+      { rotulo: "Orçamento vigente (LOA)", valor: "R$ 4.200.000,00", exemplo: true },
+      { rotulo: "Cota liberada no período", valor: "R$ 3.150.000,00", exemplo: true },
+      { rotulo: "Valor empenhado", valor: "R$ 2.780.000,00", exemplo: true },
+      { rotulo: "Valor liquidado", valor: "R$ 2.410.000,00", exemplo: true },
+      { rotulo: "Valor pago", valor: "R$ 2.190.000,00", exemplo: true },
+      { rotulo: "Execução no período (pago/orçado)", valor: "52%", exemplo: true },
+      { rotulo: "Custeio", valor: "74%", exemplo: true },
+      { rotulo: "Investimento", valor: "26%", exemplo: true },
+      { rotulo: "Fonte — Tesouro estadual", valor: "83%", exemplo: true },
+      { rotulo: "Fonte — Convênio federal (Senasp/FNSP)", valor: "17%", exemplo: true },
+      { rotulo: "Maior categoria de gasto", valor: "Pessoal e encargos", exemplo: true },
+      { rotulo: "Coordenador do setor", valor: "A preencher", exemplo: false, pendente: true }
+    ]
+  },
+  {
+    id: "projetos",
+    label: "Projetos",
+    icon: "projeto_sac",
+    cor: "var(--terracota)",
+    artigos: [],
+    intro: "Projetos institucionais do DEPAF no Portfólio PCBA 2026–2027.",
+    projetos: [
+      {
+        titulo: "Aqui tem SAC",
+        icon: "projeto_sac",
+        texto: "Estruturação do modelo de atendimento no padrão SAC nas delegacias.",
+        patrocinador: "DPC Cristiano Marcos Pitangueira Mangueira",
+        gestor: "DPC Ilma Leonor Magarão Paiva",
+        gerente: "EPC Kristianne Lima Moscovits",
+        status: "Em execução",
+        progresso: 40,
+        exemplo: true
+      },
+      {
+        titulo: "Salas de Investigação Criminal",
+        icon: "projeto_investigacao",
+        texto: "Modernização e estruturação das salas de investigação criminal.",
+        patrocinador: "DPC Cristiano Marcos Pitangueira Mangueira",
+        gestor: "DPC Ilma Leonor Magarão Paiva",
+        gerente: "EPC Kristianne Lima Moscovits",
+        status: "Planejamento",
+        progresso: 15,
+        exemplo: true
+      },
+      {
+        titulo: "Requalificação da Rede Física",
+        icon: "projeto_rede",
+        texto: "Requalificação da rede física da Polícia Civil em todo o estado.",
+        patrocinador: "DPC Cristiano Marcos Pitangueira Mangueira",
+        gestor: "DPC Ilma Leonor Magarão Paiva",
+        gerente: "EPC Kristianne Lima Moscovits",
+        status: "Em execução",
+        progresso: 55,
+        exemplo: true
+      }
+    ]
+  },
+  {
+    id: "indicadores",
+    label: "Indicadores",
+    icon: "competencia_balanca",
+    cor: "var(--mostarda)",
+    artigos: [],
+    intro: "Visão consolidada — espaço pronto para os indicadores reais de acompanhamento.",
+    dados: [
+      { rotulo: "Execução orçamentária", valor: "52%", exemplo: true },
+      { rotulo: "Frota ativa", valor: "94%", exemplo: true },
+      { rotulo: "Progresso médio dos projetos", valor: "37%", exemplo: true },
+      { rotulo: "Itens de estoque abaixo do mínimo", valor: "12", exemplo: true },
+      { rotulo: "Chamados de manutenção em aberto", valor: "9", exemplo: true }
+    ]
+  }
+];
+
+const DIRECAO = {
+  nome: "Del. Cristiano Marcos Pitangueira Mangueira",
+  cargo: "Diretor do DEPAF",
+  nota: "Patrocinador dos projetos institucionais do DEPAF no Portfólio 2026–2027."
+};
+
+const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+const DASH_DATA = {
+  pessoal: {
+    mensal: [286,291,298,301,305,309,312,308,310,312,314,312],
+    unidade: "servidores",
+    categorias: [
+      { label: "Efetivo (cargo permanente)", valor: 210 },
+      { label: "Temporário/REDA", valor: 62 },
+      { label: "Comissionado", valor: 40 }
+    ]
+  },
+  normas: {
+    mensal: [4,5,3,6,7,5,6,4,5,8,6,5],
+    unidade: "normas emitidas",
+    categorias: [
+      { label: "Portaria", valor: 38 },
+      { label: "Ordem de serviço", valor: 16 },
+      { label: "Instrução normativa", valor: 10 }
+    ]
+  },
+  patrimonio: {
+    mensal: [1620,1655,1680,1702,1735,1760,1780,1795,1810,1822,1835,1842],
+    unidade: "itens tombados",
+    categorias: [
+      { label: "Mobiliário", valor: 640 },
+      { label: "Equip. de informática", valor: 512 },
+      { label: "Material de expediente", valor: 398 },
+      { label: "Bens apreendidos", valor: 96 },
+      { label: "Outros", valor: 196 }
+    ]
+  },
+  frota: {
+    mensal: [178,180,181,183,184,185,186,186,187,187,187,187],
+    unidade: "viaturas",
+    categorias: [
+      { label: "Compacto/passeio", valor: 94 },
+      { label: "SUV/utilitário", valor: 68 },
+      { label: "Especial/blindado", valor: 25 }
+    ]
+  },
+  infraestrutura: {
+    mensal: [30,34,29,41,36,33,38,35,37,40,36,38],
+    unidade: "chamados",
+    categorias: [
+      { label: "Elétrica", valor: 11 },
+      { label: "Hidráulica", valor: 8 },
+      { label: "Climatização", valor: 9 },
+      { label: "Segurança/portaria", valor: 6 },
+      { label: "Outros", valor: 4 }
+    ]
+  },
+  orcamento: {
+    mensal: [165,172,180,188,195,201,208,214,219,224,228,231],
+    unidade: "R$ mil pagos",
+    categorias: [
+      { label: "Pessoal e encargos", valor: 1240 },
+      { label: "Custeio geral", valor: 560 },
+      { label: "Investimento", valor: 390 }
+    ]
+  },
+  projetos: {
+    mensal: [12,15,18,20,24,27,30,32,34,36,38,40],
+    unidade: "% progresso médio",
+    categorias: [
+      { label: "Aqui tem SAC", valor: 40 },
+      { label: "Salas de Investigação Criminal", valor: 15 },
+      { label: "Requalificação da Rede Física", valor: 55 }
+    ]
+  },
+  indicadores: {
+    mensal: [48,49,50,50,51,51,52,52,52,52,52,52],
+    unidade: "% execução orçamentária",
+    categorias: [
+      { label: "Pessoal", valor: 100 },
+      { label: "Normas e Modernização", valor: 100 },
+      { label: "Patrimônio e Bens", valor: 100 },
+      { label: "Frota", valor: 94 },
+      { label: "Infraestrutura", valor: 100 },
+      { label: "Orçamento e Finanças", valor: 52 }
+    ]
+  }
+};
+
+// =====================================================================
+// 3. HELPERS DE GRÁFICO (KPIs E AGREGAÇÃO)
+// =====================================================================
+function sparklineSVG(valores, cor){
+  const w=140,h=26,pad=2;
+  const max=Math.max(...valores), min=Math.min(...valores);
+  const range=(max-min)||1;
+  const step=(w-pad*2)/(valores.length-1||1);
+  let d="";
+  valores.forEach((v,i)=>{
+    const x=pad+i*step, y=h-pad-((v-min)/range)*(h-pad*2);
+    d+=(i===0?"M":"L")+x.toFixed(1)+" "+y.toFixed(1)+" ";
+  });
+  return `<svg class="kpi-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="${d}" stroke="${cor}"/></svg>`;
+}
+
+function deltaHTML(atual, anterior){
+  if(!anterior) return `<span class="kpi-delta flat">— sem comparativo</span>`;
+  const pct=((atual-anterior)/Math.abs(anterior))*100;
+  const cls = pct>0.5?"up":pct<-0.5?"down":"flat";
+  const seta = pct>0.5?"▲":pct<-0.5?"▼":"—";
+  return `<span class="kpi-delta ${cls}">${seta} ${Math.abs(pct).toFixed(1)}% vs mês anterior</span>`;
+}
+
+function kpiRowSVG(dd, cor){
+  const ultimo = dd.mensal[dd.mensal.length-1];
+  const penultimo = dd.mensal[dd.mensal.length-2];
+  const topCat = [...dd.categorias].sort((a,b)=>b.valor-a.valor)[0];
+  const total = dd.categorias.reduce((a,c)=>a+c.valor,0);
+  return `
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">Último mês</div>
+        <div class="kpi-value">${ultimo}</div>
+        ${deltaHTML(ultimo, penultimo)}
+        ${sparklineSVG(dd.mensal, cor)}
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Acumulado 12 meses</div>
+        <div class="kpi-value">${dd.mensal.reduce((a,b)=>a+b,0)}</div>
+        <span class="kpi-delta flat">${dd.unidade}</span>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Categoria líder</div>
+        <div class="kpi-value" style="font-size:20px">${topCat.label}</div>
+        <span class="kpi-delta flat">${((topCat.valor/total)*100).toFixed(0)}% do total</span>
+      </div>
+    </div>`;
+}
+
+function aggregarPeriodo(mensal, periodo) {
+  if (periodo === "mensal") return mensal.map((v, i) => ({ label: MESES[i], valor: v }));
+  if (periodo === "trimestral") {
+    const out = [];
+    for (let i = 0; i < 12; i += 3) {
+      const soma = mensal.slice(i, i + 3).reduce((a, b) => a + b, 0);
+      out.push({ label: `T${i / 3 + 1}`, valor: Math.round((soma / 3) * 100) / 100 });
+    }
+    return out;
+  }
+  const soma = mensal.reduce((a, b) => a + b, 0);
+  return [{ label: "Ano", valor: Math.round((soma / 12) * 100) / 100 }];
+}
+
+const TONS = ["var(--tinta)", "var(--mostarda)", "var(--terracota)", "var(--oliva)", "#8a8272", "#40392f"];
+function corCategoria(i) { return TONS[i % TONS.length]; }
+
+function serieCategoria(dd, catLabel) {
+  if (!catLabel || catLabel === "todas") return dd.mensal;
+  const total = dd.categorias.reduce((a, c) => a + c.valor, 0) || 1;
+  const cat = dd.categorias.find(c => c.label === catLabel);
+  if (!cat) return dd.mensal;
+  const frac = cat.valor / total;
+  return dd.mensal.map(v => Math.round(v * frac * 100) / 100);
+}
+
+// =====================================================================
+// 4. LÓGICA DA INTERFACE (DOM)
+// =====================================================================
 document.getElementById("brand-icon").innerHTML = ICONS.brasao_pcba;
 document.getElementById("footer-selo").innerHTML = seloSVG("DEPAF", "DOSSIÊ");
 
-// ---------- direção ----------
 document.getElementById("direcao-card").innerHTML = `
   <div class="card-label">DIREÇÃO ATUAL</div>
   <h3>${DIRECAO.nome}</h3>
   <p>${DIRECAO.nota}</p>
 `;
 
-// ---------- hub radial (rosa dos ventos) ----------
 const hub = document.getElementById("hub");
-
 function buildHub() {
   hub.innerHTML = "";
   const size = hub.clientWidth;
   const center = size / 2;
   const radius = size * 0.37;
 
-  // anéis + marcações de instrumento (rosa dos ventos), puramente decorativo
   const ringsSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   ringsSvg.setAttribute("viewBox", `0 0 ${size} ${size}`);
   ringsSvg.classList.add("rings");
@@ -412,7 +746,6 @@ function buildHub() {
     const x2 = center + r2 * Math.cos(rad), y2 = center + r2 * Math.sin(rad);
     ringsMarkup += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" stroke-width="${long ? 1.5 : 1}" opacity="0.5" />`;
   }
-  // raios até cada portal, com seta na ponta
   const n = PORTAIS.length;
   PORTAIS.forEach((p, i) => {
     const angle = -90 + i * (360 / n);
@@ -426,13 +759,11 @@ function buildHub() {
   ringsSvg.innerHTML = ringsMarkup;
   hub.appendChild(ringsSvg);
 
-  // brasão central
   const brasao = document.createElement("div");
   brasao.className = "hub-brasao";
   brasao.innerHTML = ICONS.brasao_pcba;
   hub.appendChild(brasao);
 
-  // nós dos portais
   PORTAIS.forEach((p, i) => {
     const angle = -90 + i * (360 / n);
     const rad = (angle * Math.PI) / 180;
@@ -459,7 +790,6 @@ window.addEventListener("resize", () => {
   window._hubResizeT = setTimeout(buildHub, 150);
 });
 
-// ---------- roteamento entre telas ----------
 const telaInicio = document.getElementById("tela-inicio");
 const telaConteudo = document.getElementById("tela-conteudo");
 const voltarBtn = document.getElementById("voltar-btn");
@@ -517,7 +847,7 @@ function abrirTela(id) {
   if (dd) {
     const catOptions = dd.categorias.map(c => `<option value="${c.label}">${c.label}</option>`).join("");
     corpoDash = `
-    <div id="dash-kpis"></div>
+      <div id="dash-kpis"></div>
       <div class="filter-chips" id="dash-chips"></div>
       <div class="dash-filtros">
         <div class="dash-filtro">
@@ -636,18 +966,19 @@ function atualizarDashboard(portalId, periodo, categoriaFiltro) {
   const p = PORTAIS.find(x => x.id === portalId);
   const dd = DASH_DATA[portalId];
   if (!dd) return;
+  
+  const categoriaSelecionada = categoriaFiltro && categoriaFiltro !== "todas" ? categoriaFiltro : null;
+  const serie = serieCategoria(dd, categoriaSelecionada);
+  const pontos = aggregarPeriodo(serie, periodo);
+  const idxSel = categoriaSelecionada ? dd.categorias.findIndex(c => c.label === categoriaSelecionada) : -1;
+  const corEvolucao = idxSel >= 0 ? corCategoria(idxSel) : p.cor;
+
   document.getElementById("dash-kpis").innerHTML = kpiRowSVG(dd, corEvolucao);
   const chips = document.getElementById("dash-chips");
   let chipsHTML = "";
   if(periodo !== "mensal") chipsHTML += `<span class="filter-chip">${periodo} <button onclick="document.getElementById('dash-filtro-periodo').value='mensal';atualizarDashboard('${portalId}','mensal',document.getElementById('dash-filtro-categoria').value)">✕</button></span>`;
   if(categoriaSelecionada) chipsHTML += `<span class="filter-chip">${categoriaSelecionada} <button onclick="document.getElementById('dash-filtro-categoria').value='todas';atualizarDashboard('${portalId}',document.getElementById('dash-filtro-periodo').value,'todas')">✕</button></span>`;
   chips.innerHTML = chipsHTML;
-
-  const categoriaSelecionada = categoriaFiltro && categoriaFiltro !== "todas" ? categoriaFiltro : null;
-  const serie = serieCategoria(dd, categoriaSelecionada);
-  const pontos = aggregarPeriodo(serie, periodo);
-  const idxSel = categoriaSelecionada ? dd.categorias.findIndex(c => c.label === categoriaSelecionada) : -1;
-  const corEvolucao = idxSel >= 0 ? corCategoria(idxSel) : p.cor;
 
   const elLinha = document.getElementById("dash-chart-linha");
   elLinha.innerHTML = dashState.tipoEvolucao === "line"
@@ -710,15 +1041,9 @@ function fecharTela() {
 voltarBtn.addEventListener("click", fecharTela);
 document.getElementById("brand-home-btn").addEventListener("click", fecharTela);
 
-</script>
-<script>
-// ============================================================
-// EXPORTADOR EXCEL — DEPAF
-// Gera um .xlsx nativo (sem dependências externas) a partir dos
-// dados de um portal do dashboard: gráficos reais do Excel +
-// dropdown de Período/Categoria que recalcula tudo via fórmula.
-// ============================================================
-
+// =====================================================================
+// 5. EXPORTADOR EXCEL — DEPAF
+// =====================================================================
 const CRC_TABLE = (() => {
   const t = new Uint32Array(256);
   for (let n = 0; n < 256; n++) {
@@ -800,7 +1125,6 @@ function colLetter(n) {
 }
 function ref(col, row) { return colLetter(col) + row; }
 
-// ---------- identidade visual DEPAF aplicada ao Excel ----------
 const XLSX_COR_MAP = { "var(--tinta)": "1B3A5C", "var(--mostarda)": "C99A2E", "var(--terracota)": "B94B32", "var(--oliva)": "5C6B3F" };
 const XLSX_PALETA_HEX = ["1B3A5C", "C99A2E", "B94B32", "5C6B3F", "8A8272", "40392F"];
 function xlsxCorHex(cssVar) { return XLSX_COR_MAP[cssVar] || "1B3A5C"; }
@@ -1004,7 +1328,6 @@ ${dPts}
 </c:chartSpace>`;
 }
 
-const XLSX_MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 function xlsxSerieCategoria(dd, catLabel) {
   if (!catLabel) return dd.mensal;
   const total = dd.categorias.reduce((a, c) => a + c.valor, 0) || 1;
@@ -1038,7 +1361,7 @@ function xlsxBuildDadosSheet(dd) {
   rows += buildRow(1, [{ col: 1, type: "s", value: "Mês" }, ...header.map((h, i) => ({ col: 2 + i, type: "s", value: h })),
     { col: 10, type: "s", value: "Categoria" }, { col: 11, type: "s", value: "Valor" }]);
   for (let m = 0; m < 12; m++) {
-    const cells = [{ col: 1, type: "s", value: XLSX_MESES[m] }];
+    const cells = [{ col: 1, type: "s", value: MESES[m] }];
     for (let c = 0; c < nCols; c++) cells.push({ col: 2 + c, type: "n", value: matrizMensal[c][m] });
     rows += buildRow(2 + m, cells);
   }
@@ -1118,7 +1441,6 @@ function xlsxBuildWorkbookBytes(p, dd) {
   return zip.build();
 }
 
-// ---------- função pública, chamada pelo botão "Exportar Excel" ----------
 function exportarDashboardExcel(portalId) {
   const p = PORTAIS.find(x => x.id === portalId);
   const dd = DASH_DATA[portalId];
