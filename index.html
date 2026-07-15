@@ -535,7 +535,7 @@ function serieCategoria(dd, catLabel) {
 }
 
 function barChartSVG(pontos, cor) {
-  const w = 520, h = 220, padL = 36, padB = 26, padT = 10, padR = 10;
+  const w = 520, h = 220, padL = 36, padB = 26, padT = 28, padR = 10;
   const max = Math.max(...pontos.map(p => p.valor), 1);
   const bw = (w - padL - padR) / pontos.length;
   let bars = "";
@@ -546,17 +546,12 @@ function barChartSVG(pontos, cor) {
     const bwReal = bw * 0.64;
     bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bwReal.toFixed(1)}" height="${bh.toFixed(1)}" fill="${cor}" stroke="var(--carvao)" stroke-width="1.5"><title>${p.label}: ${p.valor}</title></rect>`;
     bars += `<text x="${(x + bwReal / 2).toFixed(1)}" y="${h - padB + 14}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.label}</text>`;
-    bars += `<text x="${(x + bwReal / 2).toFixed(1)}" y="${(y - 5).toFixed(1)}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.valor}</text>`;
+    const labelY = Math.max(y - 5, 12);
+    bars += `<text x="${(x + bwReal / 2).toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.valor}</text>`;
   });
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="var(--carvao)" stroke-width="1.5" />
-    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h - padB}" stroke="var(--carvao)" stroke-width="1.5" />
-    ${bars}
-  </svg>`;
-}
 
 function lineChartSVG(pontos, cor) {
-  const w = 520, h = 220, padL = 36, padB = 26, padT = 10, padR = 10;
+  const w = 520, h = 220, padL = 36, padB = 26, padT = 28, padR = 10;
   const max = Math.max(...pontos.map(p => p.valor), 1);
   const stepX = (w - padL - padR) / (pontos.length - 1 || 1);
   let path = "", dots = "", labels = "";
@@ -566,15 +561,9 @@ function lineChartSVG(pontos, cor) {
     path += (i === 0 ? "M" : "L") + x.toFixed(1) + " " + y.toFixed(1) + " ";
     dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="${cor}" stroke="var(--carvao)" stroke-width="1.5"><title>${p.label}: ${p.valor}</title></circle>`;
     labels += `<text x="${x.toFixed(1)}" y="${h - padB + 14}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.label}</text>`;
-    labels += `<text x="${x.toFixed(1)}" y="${(y - 8).toFixed(1)}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.valor}</text>`;
+    const labelY = Math.max(y - 8, 12);
+    labels += `<text x="${x.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.valor}</text>`;
   });
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="var(--carvao)" stroke-width="1.5" />
-    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h - padB}" stroke="var(--carvao)" stroke-width="1.5" />
-    <path d="${path.trim()}" fill="none" stroke="${cor}" stroke-width="2.5" />
-    ${dots}${labels}
-  </svg>`;
-}
 
 function rankingChartSVG(categorias, selectedLabel) {
   const w = 300, rowH = 30, padL = 8, padR = 46, labelW = 118;
