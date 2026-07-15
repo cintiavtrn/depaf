@@ -548,9 +548,9 @@ function barChartSVG(pontos, cor) {
     bars += `<text x="${(x + bwReal / 2).toFixed(1)}" y="${h - padB + 14}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.label}</text>`;
     const labelY = Math.max(y - 5, 12);
     bars += `<text x="${(x + bwReal / 2).toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.valor}</text>`;
-    return `<svg viewBox="0 0 ${w} ${h}" width="100%" xmlns="http://www.w3.org/2000/svg">${bars}</svg>`;
-}
   });
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" xmlns="http://www.w3.org/2000/svg">${bars}</svg>`;
+}
 
 function lineChartSVG(pontos, cor) {
   const w = 520, h = 220, padL = 36, padB = 26, padT = 28, padR = 10;
@@ -565,9 +565,9 @@ function lineChartSVG(pontos, cor) {
     labels += `<text x="${x.toFixed(1)}" y="${h - padB + 14}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.label}</text>`;
     const labelY = Math.max(y - 8, 12);
     labels += `<text x="${x.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.valor}</text>`;
-    return `<svg viewBox="0 0 ${w} ${h}" width="100%" xmlns="http://www.w3.org/2000/svg"><path d="${path}" fill="none" stroke="${cor}" stroke-width="2" />${dots}${labels}</svg>`;
-}
   });
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" xmlns="http://www.w3.org/2000/svg"><path d="${path}" fill="none" stroke="${cor}" stroke-width="2" />${dots}${labels}</svg>`;
+}
 
 function rankingChartSVG(categorias, selectedLabel) {
   const w = 300, rowH = 30, padL = 8, padR = 46, labelW = 118;
