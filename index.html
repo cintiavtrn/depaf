@@ -1027,19 +1027,31 @@ function colLetter(n) {
 }
 function ref(col, row) { return colLetter(col) + row; }
 
+// ---------- identidade visual DEPAF aplicada ao Excel ----------
+const XLSX_COR_MAP = { "var(--tinta)": "1B3A5C", "var(--mostarda)": "C99A2E", "var(--terracota)": "B94B32", "var(--oliva)": "5C6B3F" };
+const XLSX_PALETA_HEX = ["1B3A5C", "C99A2E", "B94B32", "5C6B3F", "8A8272", "40392F"];
+function xlsxCorHex(cssVar) { return XLSX_COR_MAP[cssVar] || "1B3A5C"; }
+
+function xlsxFormatoValor(unidade) {
+  if (/R\$/.test(unidade)) return { code: '"R$" #,##0.00', tipo: "moeda" };
+  if (/%/.test(unidade)) return { code: '0.0"%"', tipo: "percentual" };
+  return { code: "#,##0.##", tipo: "numero" };
+}
+
 function buildRow(rowIndex, cells, boldCols) {
   boldCols = boldCols || [];
   let xml = `<row r="${rowIndex}">`;
   cells.forEach(c => {
     if (c.value === undefined || c.value === null || c.value === "") return;
     const cellRef = ref(c.col, rowIndex);
-    const style = boldCols.includes(c.col) ? ` s="1"` : "";
+    const styleIdx = c.style !== undefined ? c.style : (boldCols.includes(c.col) ? 1 : null);
+    const style = styleIdx !== null ? ` s="${styleIdx}"` : "";
     if (c.type === "n") {
       xml += `<c r="${cellRef}"${style}><v>${c.value}</v></c>`;
     } else if (c.type === "s") {
       xml += `<c r="${cellRef}" t="inlineStr"${style}><is><t xml:space="preserve">${xmlEsc(c.value)}</t></is></c>`;
     } else if (c.type === "f") {
-      xml += `<c r="${cellRef}" t="str"${style}><f>${xmlEsc(c.value)}</f></c>`;
+      xml += `<c r="${cellRef}"${style}><f>${xmlEsc(c.value)}</f></c>`;
     }
   });
   xml += `</row>`;
@@ -1066,16 +1078,31 @@ const XLSX_RELS_ROOT = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 const XLSX_STYLES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<numFmts count="3">
+<numFmt numFmtId="164" formatCode="${xmlEsc('"R$" #,##0.00')}"/>
+<numFmt numFmtId="165" formatCode="${xmlEsc('0.0"%"')}"/>
+<numFmt numFmtId="166" formatCode="${xmlEsc('#,##0.##')}"/>
+</numFmts>
 <fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>
 <fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>
 <borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
 <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-<cellXfs count="2">
+<cellXfs count="5">
 <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
 <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>
+<xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>
+<xf numFmtId="166" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>
 </cellXfs>
 <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
 </styleSheet>`;
+
+function xlsxStyleIndexParaUnidade(unidade) {
+  const tipo = xlsxFormatoValor(unidade).tipo;
+  if (tipo === "moeda") return 2;
+  if (tipo === "percentual") return 3;
+  return 4;
+}
 
 function xlsxWorkbookXml() {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -1137,11 +1164,12 @@ function xlsxDrawingXml() {
 </xdr:wsDr>`;
 }
 
-function xlsxBarChartXml(unidade) {
+function xlsxBarChartXml(unidade, corHex, formatoCode) {
+  const fmt = xmlEsc(formatoCode);
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
 <c:chart>
-<c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>${xmlEsc("Evolução — " + unidade)}</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title>
+<c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="pt-BR" sz="1400" b="1"/><a:t>${xmlEsc("Evolução — " + unidade)}</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title>
 <c:autoTitleDeleted val="0"/>
 <c:plotArea><c:layout/>
 <c:barChart>
@@ -1149,13 +1177,20 @@ function xlsxBarChartXml(unidade) {
 <c:ser>
 <c:idx val="0"/><c:order val="0"/>
 <c:tx><c:strRef><c:f>Dashboard!$B$4</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>Valor</c:v></c:pt></c:strCache></c:strRef></c:tx>
+<c:spPr><a:solidFill><a:srgbClr val="${corHex}"/></a:solidFill><a:ln w="19050"><a:solidFill><a:srgbClr val="1C1A17"/></a:solidFill></a:ln></c:spPr>
+<c:dLbls>
+<c:numFmt formatCode="${fmt}" sourceLinked="0"/>
+<c:spPr><a:noFill/><a:ln><a:noFill/></a:ln></c:spPr>
+<c:showLegendKey val="0"/><c:showVal val="1"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="0"/><c:showBubbleSize val="0"/>
+</c:dLbls>
 <c:cat><c:strRef><c:f>Dashboard!$A$5:$A$16</c:f></c:strRef></c:cat>
 <c:val><c:numRef><c:f>Dashboard!$B$5:$B$16</c:f></c:numRef></c:val>
 </c:ser>
+<c:gapWidth val="60"/>
 <c:axId val="111111111"/><c:axId val="222222222"/>
 </c:barChart>
 <c:catAx><c:axId val="111111111"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:crossAx val="222222222"/></c:catAx>
-<c:valAx><c:axId val="222222222"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="l"/><c:crossAx val="111111111"/></c:valAx>
+<c:valAx><c:axId val="222222222"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="l"/><c:numFmt formatCode="${fmt}" sourceLinked="0"/><c:crossAx val="111111111"/></c:valAx>
 </c:plotArea>
 <c:legend><c:legendPos val="b"/></c:legend>
 <c:plotVisOnly val="1"/>
@@ -1165,19 +1200,29 @@ function xlsxBarChartXml(unidade) {
 
 function xlsxPieChartXml(nCategorias) {
   const last = nCategorias + 1;
+  let dPts = "";
+  for (let i = 0; i < nCategorias; i++) {
+    const cor = XLSX_PALETA_HEX[i % XLSX_PALETA_HEX.length];
+    dPts += `<c:dPt><c:idx val="${i}"/><c:bubble3D val="0"/><c:spPr><a:solidFill><a:srgbClr val="${cor}"/></a:solidFill><a:ln w="19050"><a:solidFill><a:srgbClr val="F1ECDE"/></a:solidFill></a:ln></c:spPr></c:dPt>`;
+  }
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
 <c:chart>
-<c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>Composição por categoria</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title>
+<c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="pt-BR" sz="1400" b="1"/><a:t>Composição por categoria</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title>
 <c:autoTitleDeleted val="0"/>
 <c:plotArea><c:layout/>
 <c:pieChart>
 <c:varyColors val="1"/>
 <c:ser>
 <c:idx val="0"/><c:order val="0"/>
+${dPts}
+<c:dLbls>
+<c:showLegendKey val="0"/><c:showVal val="0"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="1"/><c:showBubbleSize val="0"/>
+</c:dLbls>
 <c:cat><c:strRef><c:f>Dados!$J$2:$J$${last}</c:f></c:strRef></c:cat>
 <c:val><c:numRef><c:f>Dados!$K$2:$K$${last}</c:f></c:numRef></c:val>
 </c:ser>
+<c:firstSliceAng val="0"/>
 </c:pieChart>
 </c:plotArea>
 <c:legend><c:legendPos val="b"/></c:legend>
@@ -1259,11 +1304,12 @@ function xlsxBuildDashboardSheet(dd) {
   rows += buildRow(2, [{ col: 1, type: "s", value: "Categoria:" }, { col: 2, type: "s", value: "Todas" }], [1]);
   rows += buildRow(4, [{ col: 1, type: "s", value: "Rótulo" }, { col: 2, type: "s", value: "Valor" }], [1, 2]);
 
+  const styleValor = xlsxStyleIndexParaUnidade(dd.unidade);
   for (let i = 0; i < 12; i++) {
     const r = 5 + i;
     const labelF = `IF($B$1="Mensal",INDEX(Dados!$A$2:$A$13,ROW()-4),IF($B$1="Trimestral",IF(ROW()-4<=4,INDEX(Dados!$A$16:$A$19,ROW()-4),""),IF(ROW()-4=1,Dados!$A$22,"")))`;
     const valF = `IF($B$1="Mensal",INDEX(Dados!$B$2:$${colHeaderEnd}$13,ROW()-4,MATCH($B$2,Dados!$B$1:$${colHeaderEnd}$1,0)),IF($B$1="Trimestral",IF(ROW()-4<=4,INDEX(Dados!$B$16:$${colHeaderEnd}$19,ROW()-4,MATCH($B$2,Dados!$B$1:$${colHeaderEnd}$1,0)),""),IF(ROW()-4=1,INDEX(Dados!$B$22:$${colHeaderEnd}$22,1,MATCH($B$2,Dados!$B$1:$${colHeaderEnd}$1,0)),"")))`;
-    rows += buildRow(r, [{ col: 1, type: "f", value: labelF }, { col: 2, type: "f", value: valF }]);
+    rows += buildRow(r, [{ col: 1, type: "f", value: labelF }, { col: 2, type: "f", value: valF, style: styleValor }]);
   }
 
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -1280,7 +1326,9 @@ function xlsxBuildDashboardSheet(dd) {
 </worksheet>`;
 }
 
-function xlsxBuildWorkbookBytes(dd) {
+function xlsxBuildWorkbookBytes(p, dd) {
+  const corHex = xlsxCorHex(p.cor);
+  const formatoCode = xlsxFormatoValor(dd.unidade).code;
   const zip = new ZipBuilder();
   zip.addFile("[Content_Types].xml", XLSX_CONTENT_TYPES);
   zip.addFile("_rels/.rels", XLSX_RELS_ROOT);
@@ -1292,7 +1340,7 @@ function xlsxBuildWorkbookBytes(dd) {
   zip.addFile("xl/worksheets/sheet2.xml", xlsxBuildDadosSheet(dd));
   zip.addFile("xl/drawings/drawing1.xml", xlsxDrawingXml());
   zip.addFile("xl/drawings/_rels/drawing1.xml.rels", XLSX_DRAWING_RELS);
-  zip.addFile("xl/charts/chart1.xml", xlsxBarChartXml(dd.unidade));
+  zip.addFile("xl/charts/chart1.xml", xlsxBarChartXml(dd.unidade, corHex, formatoCode));
   zip.addFile("xl/charts/chart2.xml", xlsxPieChartXml(dd.categorias.length));
   return zip.build();
 }
@@ -1302,7 +1350,7 @@ function exportarDashboardExcel(portalId) {
   const p = PORTAIS.find(x => x.id === portalId);
   const dd = DASH_DATA[portalId];
   if (!p || !dd) return;
-  const bytes = xlsxBuildWorkbookBytes(dd);
+  const bytes = xlsxBuildWorkbookBytes(p, dd);
   const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
