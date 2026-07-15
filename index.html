@@ -115,6 +115,35 @@ body{background:var(--paper);color:var(--carvao);font-family:'IBM Plex Sans',san
 .equipe{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6b6353;margin-top:14px;border-top:1px solid var(--paper-line);padding-top:10px}
 .equipe span{display:block}
 
+.tabs{display:flex;gap:2px;margin-bottom:0;border-bottom:3px solid var(--carvao)}
+.tab-btn{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.05em;
+  background:var(--paper-line);color:var(--carvao);border:2px solid var(--carvao);border-bottom:none;
+  padding:10px 18px;cursor:pointer;position:relative;top:3px;
+}
+.tab-btn.active{background:#fff;top:0;padding-bottom:13px;font-weight:600}
+.tab-panel{padding-top:26px}
+.tab-panel[hidden]{display:none}
+
+.dash-filtros{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;background:#fff;border:2px solid var(--carvao);padding:14px 16px}
+.dash-filtro{display:flex;flex-direction:column;gap:4px}
+.dash-filtro label{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.08em;color:#6b6353}
+.dash-filtro select{
+  font-family:'IBM Plex Mono',monospace;font-size:12.5px;padding:6px 8px;border:2px solid var(--carvao);background:var(--paper);color:var(--carvao);
+}
+
+.dash-charts{display:grid;grid-template-columns:1.3fr 1fr;gap:2px;background:var(--carvao);border:2px solid var(--carvao);margin-bottom:2px}
+@media (max-width:760px){.dash-charts{grid-template-columns:1fr}}
+.dash-chart-box{background:#fff;padding:18px}
+.dash-chart-box h4{font-family:'Big Shoulders Display',sans-serif;font-size:16px;margin-bottom:12px}
+.dash-chart-box svg{width:100%;height:auto;display:block}
+
+.dash-tabela{width:100%;border-collapse:collapse;background:#fff;border:2px solid var(--carvao)}
+.dash-tabela th,.dash-tabela td{border:1px solid var(--paper-line);padding:8px 10px;font-size:13px;text-align:left}
+.dash-tabela th{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.06em;background:var(--paper);color:#6b6353}
+.dash-tabela td.num{font-family:'IBM Plex Mono',monospace;text-align:right}
+.dash-tabela tr.dim{opacity:0.35}
+
 footer{border-top:3px solid var(--carvao);padding:30px 24px;max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
 footer .selo{width:58px;height:58px;color:var(--carvao)}
 footer .selo svg{width:100%;height:100%}
@@ -385,6 +414,151 @@ const DIRECAO = {
   nota: "Patrocinador dos projetos institucionais do DEPAF no Portfólio 2026–2027."
 };
 
+// ---------- dados do dashboard (exemplo — substituir pela base real) ----------
+const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+const DASH_DATA = {
+  pessoal: {
+    mensal: [286,291,298,301,305,309,312,308,310,312,314,312],
+    unidade: "servidores",
+    categorias: [
+      { label: "Efetivo (cargo permanente)", valor: 210 },
+      { label: "Temporário/REDA", valor: 62 },
+      { label: "Comissionado", valor: 40 }
+    ]
+  },
+  normas: {
+    mensal: [4,5,3,6,7,5,6,4,5,8,6,5],
+    unidade: "normas emitidas",
+    categorias: [
+      { label: "Portaria", valor: 38 },
+      { label: "Ordem de serviço", valor: 16 },
+      { label: "Instrução normativa", valor: 10 }
+    ]
+  },
+  patrimonio: {
+    mensal: [1620,1655,1680,1702,1735,1760,1780,1795,1810,1822,1835,1842],
+    unidade: "itens tombados",
+    categorias: [
+      { label: "Mobiliário", valor: 640 },
+      { label: "Equip. de informática", valor: 512 },
+      { label: "Material de expediente", valor: 398 },
+      { label: "Bens apreendidos", valor: 96 },
+      { label: "Outros", valor: 196 }
+    ]
+  },
+  frota: {
+    mensal: [178,180,181,183,184,185,186,186,187,187,187,187],
+    unidade: "viaturas",
+    categorias: [
+      { label: "Compacto/passeio", valor: 94 },
+      { label: "SUV/utilitário", valor: 68 },
+      { label: "Especial/blindado", valor: 25 }
+    ]
+  },
+  infraestrutura: {
+    mensal: [30,34,29,41,36,33,38,35,37,40,36,38],
+    unidade: "chamados",
+    categorias: [
+      { label: "Elétrica", valor: 11 },
+      { label: "Hidráulica", valor: 8 },
+      { label: "Climatização", valor: 9 },
+      { label: "Segurança/portaria", valor: 6 },
+      { label: "Outros", valor: 4 }
+    ]
+  },
+  orcamento: {
+    mensal: [165,172,180,188,195,201,208,214,219,224,228,231],
+    unidade: "R$ mil pagos",
+    categorias: [
+      { label: "Pessoal e encargos", valor: 1240 },
+      { label: "Custeio geral", valor: 560 },
+      { label: "Investimento", valor: 390 }
+    ]
+  },
+  projetos: {
+    mensal: [12,15,18,20,24,27,30,32,34,36,38,40],
+    unidade: "% progresso médio",
+    categorias: [
+      { label: "Aqui tem SAC", valor: 40 },
+      { label: "Salas de Investigação Criminal", valor: 15 },
+      { label: "Requalificação da Rede Física", valor: 55 }
+    ]
+  },
+  indicadores: {
+    mensal: [48,49,50,50,51,51,52,52,52,52,52,52],
+    unidade: "% execução orçamentária",
+    categorias: [
+      { label: "Pessoal", valor: 100 },
+      { label: "Normas e Modernização", valor: 100 },
+      { label: "Patrimônio e Bens", valor: 100 },
+      { label: "Frota", valor: 94 },
+      { label: "Infraestrutura", valor: 100 },
+      { label: "Orçamento e Finanças", valor: 52 }
+    ]
+  }
+};
+
+function aggregarPeriodo(mensal, periodo) {
+  if (periodo === "mensal") return mensal.map((v, i) => ({ label: MESES[i], valor: v }));
+  if (periodo === "trimestral") {
+    const out = [];
+    for (let i = 0; i < 12; i += 3) {
+      const soma = mensal.slice(i, i + 3).reduce((a, b) => a + b, 0);
+      out.push({ label: `T${i / 3 + 1}`, valor: Math.round((soma / 3) * 100) / 100 });
+    }
+    return out;
+  }
+  const soma = mensal.reduce((a, b) => a + b, 0);
+  return [{ label: "Ano", valor: Math.round((soma / 12) * 100) / 100 }];
+}
+
+function barChartSVG(pontos, cor) {
+  const w = 520, h = 220, padL = 36, padB = 26, padT = 10, padR = 10;
+  const max = Math.max(...pontos.map(p => p.valor), 1);
+  const bw = (w - padL - padR) / pontos.length;
+  let bars = "";
+  pontos.forEach((p, i) => {
+    const bh = ((h - padT - padB) * p.valor) / max;
+    const x = padL + i * bw + bw * 0.18;
+    const y = h - padB - bh;
+    const bwReal = bw * 0.64;
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bwReal.toFixed(1)}" height="${bh.toFixed(1)}" fill="${cor}" stroke="var(--carvao)" stroke-width="1.5" />`;
+    bars += `<text x="${(x + bwReal / 2).toFixed(1)}" y="${h - padB + 14}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.label}</text>`;
+    bars += `<text x="${(x + bwReal / 2).toFixed(1)}" y="${(y - 5).toFixed(1)}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.valor}</text>`;
+  });
+  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+    <line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="var(--carvao)" stroke-width="1.5" />
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h - padB}" stroke="var(--carvao)" stroke-width="1.5" />
+    ${bars}
+  </svg>`;
+}
+
+function donutChartSVG(categorias) {
+  const total = categorias.reduce((a, c) => a + c.valor, 0) || 1;
+  const cx = 100, cy = 100, r = 70, rInner = 42;
+  let angAcc = -90;
+  const tons = ["var(--tinta)", "var(--mostarda)", "var(--terracota)", "var(--oliva)", "#8a8272", "#40392f"];
+  let fatias = "";
+  categorias.forEach((c, i) => {
+    const frac = c.valor / total;
+    const a0 = angAcc, a1 = angAcc + frac * 360;
+    angAcc = a1;
+    const toXY = (ang, radius) => {
+      const rad = (ang * Math.PI) / 180;
+      return [cx + radius * Math.cos(rad), cy + radius * Math.sin(rad)];
+    };
+    const [x0, y0] = toXY(a0, r), [x1, y1] = toXY(a1, r);
+    const [xi1, yi1] = toXY(a1, rInner), [xi0, yi0] = toXY(a0, rInner);
+    const large = a1 - a0 > 180 ? 1 : 0;
+    const cor = tons[i % tons.length];
+    fatias += `<path d="M ${x0.toFixed(1)} ${y0.toFixed(1)} A ${r} ${r} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} L ${xi1.toFixed(1)} ${yi1.toFixed(1)} A ${rInner} ${rInner} 0 ${large} 0 ${xi0.toFixed(1)} ${yi0.toFixed(1)} Z" fill="${cor}" stroke="#fff" stroke-width="1.5" />`;
+  });
+  return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">${fatias}
+    <text x="${cx}" y="${cy - 3}" text-anchor="middle" font-family="monospace" font-size="18" font-weight="700" fill="var(--carvao)">${total}</text>
+    <text x="${cx}" y="${cy + 13}" text-anchor="middle" font-family="monospace" font-size="8" letter-spacing="1" fill="#6b6353">TOTAL</text>
+  </svg>`;
+}
 </script>
 <script>
 // Monta o hub (brasão central + pontos radiais) e as telas dedicadas de cada portal.
@@ -481,21 +655,12 @@ function abrirTela(id) {
   const p = PORTAIS.find(x => x.id === id);
   if (!p) return;
 
-  let corpo = `
-    <div class="tela-head" style="--tela-color:${p.cor}">
-      <span class="icon-grande">${ICONS[p.icon]}</span>
-      <div>
-        <h2>${p.label}</h2>
-        ${p.artigos.length ? `<div class="artigos">ART. 27${p.artigos.length > 1 ? ", INCISOS" : ", INCISO"} ${p.artigos.join(", ")}</div>` : ""}
-      </div>
-    </div>
-    <p class="tela-intro">${p.intro}</p>
-  `;
+  let corpoGeral = "";
 
   if (p.dados) {
-    corpo += `<div class="dados-grid">`;
+    corpoGeral += `<div class="dados-grid">`;
     p.dados.forEach(d => {
-      corpo += `
+      corpoGeral += `
         <div class="dado">
           <div class="valor">${d.valor}</div>
           <div class="rotulo">${d.rotulo}</div>
@@ -504,12 +669,12 @@ function abrirTela(id) {
         </div>
       `;
     });
-    corpo += `</div>`;
+    corpoGeral += `</div>`;
   }
 
   if (p.projetos) {
     p.projetos.forEach(proj => {
-      corpo += `
+      corpoGeral += `
         <div class="projeto-card">
           <div class="top">
             <span class="icon">${ICONS[proj.icon]}</span>
@@ -533,11 +698,104 @@ function abrirTela(id) {
     });
   }
 
-  telaConteudo.innerHTML = corpo;
+  const dd = DASH_DATA[p.id];
+  let corpoDash = `<p class="tela-intro">Dashboard ainda não configurado para este portal.</p>`;
+  if (dd) {
+    const catOptions = dd.categorias.map(c => `<option value="${c.label}">${c.label}</option>`).join("");
+    corpoDash = `
+      <div class="dash-filtros">
+        <div class="dash-filtro">
+          <label>PERÍODO</label>
+          <select id="dash-filtro-periodo">
+            <option value="mensal">Mensal</option>
+            <option value="trimestral">Trimestral</option>
+            <option value="anual">Anual</option>
+          </select>
+        </div>
+        <div class="dash-filtro">
+          <label>CATEGORIA / SETOR</label>
+          <select id="dash-filtro-categoria">
+            <option value="todas">Todas as categorias</option>
+            ${catOptions}
+          </select>
+        </div>
+      </div>
+      <div class="dash-charts">
+        <div class="dash-chart-box">
+          <h4>EVOLUÇÃO — ${dd.unidade.toUpperCase()}</h4>
+          <div id="dash-chart-linha"></div>
+        </div>
+        <div class="dash-chart-box">
+          <h4>COMPOSIÇÃO POR CATEGORIA</h4>
+          <div id="dash-chart-donut"></div>
+        </div>
+      </div>
+      <table class="dash-tabela">
+        <thead><tr><th>CATEGORIA</th><th>VALOR</th><th>% DO TOTAL</th></tr></thead>
+        <tbody id="dash-tabela-body"></tbody>
+      </table>
+      <span class="tag tag-exemplo" style="margin-top:12px">DADOS EXEMPLO ILUSTRATIVO — SUBSTITUIR PELA BASE REAL</span>
+    `;
+  }
+
+  telaConteudo.innerHTML = `
+    <div class="tela-head" style="--tela-color:${p.cor}">
+      <span class="icon-grande">${ICONS[p.icon]}</span>
+      <div>
+        <h2>${p.label}</h2>
+        ${p.artigos.length ? `<div class="artigos">ART. 27${p.artigos.length > 1 ? ", INCISOS" : ", INCISO"} ${p.artigos.join(", ")}</div>` : ""}
+      </div>
+    </div>
+    <p class="tela-intro">${p.intro}</p>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="geral">VISÃO GERAL</button>
+      <button class="tab-btn" data-tab="dashboard">DASHBOARD</button>
+    </div>
+    <div class="tab-panel" id="tab-geral">${corpoGeral}</div>
+    <div class="tab-panel" id="tab-dashboard" hidden>${corpoDash}</div>
+  `;
+
+  telaConteudo.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      telaConteudo.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const alvo = btn.dataset.tab;
+      telaConteudo.querySelector("#tab-geral").hidden = alvo !== "geral";
+      telaConteudo.querySelector("#tab-dashboard").hidden = alvo !== "dashboard";
+    });
+  });
+
+  if (dd) {
+    const selPeriodo = document.getElementById("dash-filtro-periodo");
+    const selCategoria = document.getElementById("dash-filtro-categoria");
+    const render = () => atualizarDashboard(p.id, selPeriodo.value, selCategoria.value);
+    selPeriodo.addEventListener("change", render);
+    selCategoria.addEventListener("change", render);
+    render();
+  }
+
   telaConteudo.hidden = false;
   telaInicio.style.display = "none";
   voltarBtn.classList.add("show");
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function atualizarDashboard(portalId, periodo, categoriaFiltro) {
+  const p = PORTAIS.find(x => x.id === portalId);
+  const dd = DASH_DATA[portalId];
+  if (!dd) return;
+
+  const pontos = aggregarPeriodo(dd.mensal, periodo);
+  document.getElementById("dash-chart-linha").innerHTML = barChartSVG(pontos, p.cor);
+  document.getElementById("dash-chart-donut").innerHTML = donutChartSVG(dd.categorias);
+
+  const total = dd.categorias.reduce((a, c) => a + c.valor, 0) || 1;
+  const corpo = dd.categorias.map(c => {
+    const pct = ((c.valor / total) * 100).toFixed(1);
+    const dim = categoriaFiltro !== "todas" && categoriaFiltro !== c.label;
+    return `<tr class="${dim ? "dim" : ""}"><td>${c.label}</td><td class="num">${c.valor}</td><td class="num">${pct}%</td></tr>`;
+  }).join("");
+  document.getElementById("dash-tabela-body").innerHTML = corpo;
 }
 
 function fecharTela() {
