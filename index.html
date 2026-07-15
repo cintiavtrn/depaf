@@ -248,6 +248,13 @@ const PORTAIS = [
       { rotulo: "Itens tombados no cadastro", valor: "1.842", exemplo: true },
       { rotulo: "Requisições de material de expediente no mês", valor: "57", exemplo: true },
       { rotulo: "Bens apreendidos sob guarda", valor: "96", exemplo: true },
+      { rotulo: "Itens abaixo do estoque mínimo", valor: "12", exemplo: true },
+      { rotulo: "Tempo médio de atendimento do pedido", valor: "9 dias", exemplo: true },
+      { rotulo: "Atendimento — unidades da capital", valor: "6 dias", exemplo: true },
+      { rotulo: "Atendimento — unidades do interior", valor: "17 dias", exemplo: true },
+      { rotulo: "Saldo consumido da Ata de Registro de Preços vigente", valor: "48%", exemplo: true },
+      { rotulo: "Classe A — reposição mensal", valor: "Munição, combustível, perícia", exemplo: true },
+      { rotulo: "Classe C — reposição trimestral/semestral", valor: "Material de escritório comum", exemplo: true },
       { rotulo: "Coordenador do setor", valor: "A preencher", exemplo: false, pendente: true }
     ]
   },
@@ -263,7 +270,16 @@ const PORTAIS = [
       { rotulo: "Compacto / passeio", valor: "94 unidades", exemplo: true },
       { rotulo: "SUV / utilitário", valor: "68 unidades", exemplo: true },
       { rotulo: "Especial / blindado", valor: "25 unidades", exemplo: true },
+      { rotulo: "Moto", valor: "A preencher", exemplo: false, pendente: true },
       { rotulo: "Idade média da frota", valor: "6 anos", exemplo: true },
+      { rotulo: "Viaturas ativas", valor: "94%", exemplo: true },
+      { rotulo: "Em manutenção no momento", valor: "9 viaturas", exemplo: true },
+      { rotulo: "Tempo médio parado em manutenção", valor: "5 dias", exemplo: true },
+      { rotulo: "Taxa de renovação anual", valor: "8%", exemplo: true },
+      { rotulo: "Custo médio de manutenção por viatura/ano", valor: "R$ 6.200,00", exemplo: true },
+      { rotulo: "Aquisição — compra direta", valor: "62%", exemplo: true },
+      { rotulo: "Aquisição — convênio federal", valor: "31%", exemplo: true },
+      { rotulo: "Aquisição — doação", valor: "7%", exemplo: true },
       { rotulo: "Coordenador do setor", valor: "A preencher", exemplo: false, pendente: true }
     ]
   },
@@ -288,8 +304,16 @@ const PORTAIS = [
     artigos: ["VIII", "IX"],
     intro: "Programa, orça, acompanha e executa a administração financeira e contábil, em articulação com o sistema estadual.",
     dados: [
-      { rotulo: "Orçamento vigente", valor: "R$ 4.200.000,00", exemplo: true },
-      { rotulo: "Execução no período", valor: "61%", exemplo: true },
+      { rotulo: "Orçamento vigente (LOA)", valor: "R$ 4.200.000,00", exemplo: true },
+      { rotulo: "Cota liberada no período", valor: "R$ 3.150.000,00", exemplo: true },
+      { rotulo: "Valor empenhado", valor: "R$ 2.780.000,00", exemplo: true },
+      { rotulo: "Valor liquidado", valor: "R$ 2.410.000,00", exemplo: true },
+      { rotulo: "Valor pago", valor: "R$ 2.190.000,00", exemplo: true },
+      { rotulo: "Execução no período (pago/orçado)", valor: "52%", exemplo: true },
+      { rotulo: "Custeio", valor: "74%", exemplo: true },
+      { rotulo: "Investimento", valor: "26%", exemplo: true },
+      { rotulo: "Fonte — Tesouro estadual", valor: "83%", exemplo: true },
+      { rotulo: "Fonte — Convênio federal (Senasp/FNSP)", valor: "17%", exemplo: true },
       { rotulo: "Maior categoria de gasto", valor: "Pessoal e encargos", exemplo: true },
       { rotulo: "Coordenador do setor", valor: "A preencher", exemplo: false, pendente: true }
     ]
@@ -345,8 +369,10 @@ const PORTAIS = [
     artigos: [],
     intro: "Visão consolidada — espaço pronto para os indicadores reais de acompanhamento.",
     dados: [
-      { rotulo: "Execução orçamentária", valor: "61%", exemplo: true },
+      { rotulo: "Execução orçamentária", valor: "52%", exemplo: true },
+      { rotulo: "Frota ativa", valor: "94%", exemplo: true },
       { rotulo: "Progresso médio dos projetos", valor: "37%", exemplo: true },
+      { rotulo: "Itens de estoque abaixo do mínimo", valor: "12", exemplo: true },
       { rotulo: "Chamados de manutenção em aberto", valor: "9", exemplo: true }
     ]
   }
