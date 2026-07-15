@@ -143,6 +143,14 @@ body{background:var(--paper);color:var(--carvao);font-family:'IBM Plex Sans',san
 .dash-tabela th{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.06em;background:var(--paper);color:#6b6353}
 .dash-tabela td.num{font-family:'IBM Plex Mono',monospace;text-align:right}
 .dash-tabela tr.dim{opacity:0.35}
+.dash-tabela tr[data-cat]{cursor:pointer}
+.dash-tabela tr[data-cat]:hover{background:var(--paper-line)}
+.dash-chart-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.dash-chart-head h4{margin-bottom:0}
+.dash-toggle{display:flex;border:1.5px solid var(--carvao)}
+.dash-toggle-btn{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.04em;background:var(--paper);color:var(--carvao);border:none;padding:5px 9px;cursor:pointer}
+.dash-toggle-btn+.dash-toggle-btn{border-left:1.5px solid var(--carvao)}
+.dash-toggle-btn.active{background:var(--carvao);color:var(--paper)}
 
 footer{border-top:3px solid var(--carvao);padding:30px 24px;max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
 footer .selo{width:58px;height:58px;color:var(--carvao)}
@@ -513,6 +521,19 @@ function aggregarPeriodo(mensal, periodo) {
   return [{ label: "Ano", valor: Math.round((soma / 12) * 100) / 100 }];
 }
 
+const TONS = ["var(--tinta)", "var(--mostarda)", "var(--terracota)", "var(--oliva)", "#8a8272", "#40392f"];
+function corCategoria(i) { return TONS[i % TONS.length]; }
+
+// devolve a série mensal de UMA categoria, proporcional à sua fatia do total
+function serieCategoria(dd, catLabel) {
+  if (!catLabel || catLabel === "todas") return dd.mensal;
+  const total = dd.categorias.reduce((a, c) => a + c.valor, 0) || 1;
+  const cat = dd.categorias.find(c => c.label === catLabel);
+  if (!cat) return dd.mensal;
+  const frac = cat.valor / total;
+  return dd.mensal.map(v => Math.round(v * frac * 100) / 100);
+}
+
 function barChartSVG(pontos, cor) {
   const w = 520, h = 220, padL = 36, padB = 26, padT = 10, padR = 10;
   const max = Math.max(...pontos.map(p => p.valor), 1);
@@ -523,7 +544,7 @@ function barChartSVG(pontos, cor) {
     const x = padL + i * bw + bw * 0.18;
     const y = h - padB - bh;
     const bwReal = bw * 0.64;
-    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bwReal.toFixed(1)}" height="${bh.toFixed(1)}" fill="${cor}" stroke="var(--carvao)" stroke-width="1.5" />`;
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bwReal.toFixed(1)}" height="${bh.toFixed(1)}" fill="${cor}" stroke="var(--carvao)" stroke-width="1.5"><title>${p.label}: ${p.valor}</title></rect>`;
     bars += `<text x="${(x + bwReal / 2).toFixed(1)}" y="${h - padB + 14}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.label}</text>`;
     bars += `<text x="${(x + bwReal / 2).toFixed(1)}" y="${(y - 5).toFixed(1)}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.valor}</text>`;
   });
@@ -534,11 +555,54 @@ function barChartSVG(pontos, cor) {
   </svg>`;
 }
 
-function donutChartSVG(categorias) {
+function lineChartSVG(pontos, cor) {
+  const w = 520, h = 220, padL = 36, padB = 26, padT = 10, padR = 10;
+  const max = Math.max(...pontos.map(p => p.valor), 1);
+  const stepX = (w - padL - padR) / (pontos.length - 1 || 1);
+  let path = "", dots = "", labels = "";
+  pontos.forEach((p, i) => {
+    const x = padL + i * stepX;
+    const y = h - padB - ((h - padT - padB) * p.valor) / max;
+    path += (i === 0 ? "M" : "L") + x.toFixed(1) + " " + y.toFixed(1) + " ";
+    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="${cor}" stroke="var(--carvao)" stroke-width="1.5"><title>${p.label}: ${p.valor}</title></circle>`;
+    labels += `<text x="${x.toFixed(1)}" y="${h - padB + 14}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.label}</text>`;
+    labels += `<text x="${x.toFixed(1)}" y="${(y - 8).toFixed(1)}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.valor}</text>`;
+  });
+  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+    <line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="var(--carvao)" stroke-width="1.5" />
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h - padB}" stroke="var(--carvao)" stroke-width="1.5" />
+    <path d="${path.trim()}" fill="none" stroke="${cor}" stroke-width="2.5" />
+    ${dots}${labels}
+  </svg>`;
+}
+
+function rankingChartSVG(categorias, selectedLabel) {
+  const w = 300, rowH = 30, padL = 8, padR = 46, labelW = 118;
+  const max = Math.max(...categorias.map(c => c.valor), 1);
+  const h = categorias.length * rowH + 10;
+  let rows = "";
+  categorias.forEach((c, i) => {
+    const y = 8 + i * rowH;
+    const barMaxW = w - labelW - padR;
+    const barW = Math.max((barMaxW * c.valor) / max, 2);
+    const cor = corCategoria(i);
+    const sel = selectedLabel === c.label;
+    const nomeCurto = c.label.length > 20 ? c.label.slice(0, 19) + "…" : c.label;
+    rows += `<g class="rank-bar" data-cat="${c.label}" style="cursor:pointer">
+      <title>${c.label}: ${c.valor}</title>
+      <text x="${padL}" y="${y + rowH * 0.62}" font-family="monospace" font-size="10.5" fill="var(--carvao)">${nomeCurto}</text>
+      <rect x="${labelW}" y="${y + 4}" width="${barMaxW}" height="${rowH - 12}" fill="none" stroke="var(--paper-line)" stroke-width="1" />
+      <rect x="${labelW}" y="${y + 4}" width="${barW.toFixed(1)}" height="${rowH - 12}" fill="${cor}" stroke="var(--carvao)" stroke-width="${sel ? 2.5 : 1.2}" opacity="${selectedLabel && !sel ? 0.35 : 1}" />
+      <text x="${labelW + barMaxW + 6}" y="${y + rowH * 0.62}" font-family="monospace" font-size="10" fill="var(--carvao)">${c.valor}</text>
+    </g>`;
+  });
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" xmlns="http://www.w3.org/2000/svg">${rows}</svg>`;
+}
+
+function donutChartSVG(categorias, selectedLabel) {
   const total = categorias.reduce((a, c) => a + c.valor, 0) || 1;
   const cx = 100, cy = 100, r = 70, rInner = 42;
   let angAcc = -90;
-  const tons = ["var(--tinta)", "var(--mostarda)", "var(--terracota)", "var(--oliva)", "#8a8272", "#40392f"];
   let fatias = "";
   categorias.forEach((c, i) => {
     const frac = c.valor / total;
@@ -551,12 +615,16 @@ function donutChartSVG(categorias) {
     const [x0, y0] = toXY(a0, r), [x1, y1] = toXY(a1, r);
     const [xi1, yi1] = toXY(a1, rInner), [xi0, yi0] = toXY(a0, rInner);
     const large = a1 - a0 > 180 ? 1 : 0;
-    const cor = tons[i % tons.length];
-    fatias += `<path d="M ${x0.toFixed(1)} ${y0.toFixed(1)} A ${r} ${r} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} L ${xi1.toFixed(1)} ${yi1.toFixed(1)} A ${rInner} ${rInner} 0 ${large} 0 ${xi0.toFixed(1)} ${yi0.toFixed(1)} Z" fill="${cor}" stroke="#fff" stroke-width="1.5" />`;
+    const cor = corCategoria(i);
+    const sel = selectedLabel === c.label;
+    const opacity = selectedLabel && !sel ? 0.3 : 1;
+    fatias += `<path class="donut-fatia" data-cat="${c.label}" d="M ${x0.toFixed(1)} ${y0.toFixed(1)} A ${r} ${r} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} L ${xi1.toFixed(1)} ${yi1.toFixed(1)} A ${rInner} ${rInner} 0 ${large} 0 ${xi0.toFixed(1)} ${yi0.toFixed(1)} Z" fill="${cor}" stroke="#fff" stroke-width="1.5" opacity="${opacity}" style="cursor:pointer"><title>${c.label}: ${c.valor}</title></path>`;
   });
+  const catSel = categorias.find(c => c.label === selectedLabel);
+  const totalLabel = catSel ? catSel.valor : total;
   return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">${fatias}
-    <text x="${cx}" y="${cy - 3}" text-anchor="middle" font-family="monospace" font-size="18" font-weight="700" fill="var(--carvao)">${total}</text>
-    <text x="${cx}" y="${cy + 13}" text-anchor="middle" font-family="monospace" font-size="8" letter-spacing="1" fill="#6b6353">TOTAL</text>
+    <text x="${cx}" y="${cy - 3}" text-anchor="middle" font-family="monospace" font-size="18" font-weight="700" fill="var(--carvao)">${totalLabel}</text>
+    <text x="${cx}" y="${cy + 13}" text-anchor="middle" font-family="monospace" font-size="8" letter-spacing="1" fill="#6b6353">${catSel ? "SELECIONADO" : "TOTAL"}</text>
   </svg>`;
 }
 </script>
@@ -650,6 +718,7 @@ window.addEventListener("resize", () => {
 const telaInicio = document.getElementById("tela-inicio");
 const telaConteudo = document.getElementById("tela-conteudo");
 const voltarBtn = document.getElementById("voltar-btn");
+let dashState = { tipoEvolucao: "bar", tipoComp: "donut" };
 
 function abrirTela(id) {
   const p = PORTAIS.find(x => x.id === id);
@@ -722,11 +791,23 @@ function abrirTela(id) {
       </div>
       <div class="dash-charts">
         <div class="dash-chart-box">
-          <h4>EVOLUÇÃO — ${dd.unidade.toUpperCase()}</h4>
+          <div class="dash-chart-head">
+            <h4>EVOLUÇÃO — ${dd.unidade.toUpperCase()}</h4>
+            <div class="dash-toggle" id="toggle-tipo-evolucao">
+              <button class="dash-toggle-btn active" data-val="bar">BARRAS</button>
+              <button class="dash-toggle-btn" data-val="line">LINHA</button>
+            </div>
+          </div>
           <div id="dash-chart-linha"></div>
         </div>
         <div class="dash-chart-box">
-          <h4>COMPOSIÇÃO POR CATEGORIA</h4>
+          <div class="dash-chart-head">
+            <h4>COMPOSIÇÃO POR CATEGORIA</h4>
+            <div class="dash-toggle" id="toggle-tipo-comp">
+              <button class="dash-toggle-btn active" data-val="donut">ROSCA</button>
+              <button class="dash-toggle-btn" data-val="ranking">RANKING</button>
+            </div>
+          </div>
           <div id="dash-chart-donut"></div>
         </div>
       </div>
@@ -766,11 +847,30 @@ function abrirTela(id) {
   });
 
   if (dd) {
+    dashState = { tipoEvolucao: "bar", tipoComp: "donut" };
     const selPeriodo = document.getElementById("dash-filtro-periodo");
     const selCategoria = document.getElementById("dash-filtro-categoria");
     const render = () => atualizarDashboard(p.id, selPeriodo.value, selCategoria.value);
     selPeriodo.addEventListener("change", render);
     selCategoria.addEventListener("change", render);
+
+    document.querySelectorAll("#toggle-tipo-evolucao .dash-toggle-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#toggle-tipo-evolucao .dash-toggle-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        dashState.tipoEvolucao = btn.dataset.val;
+        render();
+      });
+    });
+    document.querySelectorAll("#toggle-tipo-comp .dash-toggle-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#toggle-tipo-comp .dash-toggle-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        dashState.tipoComp = btn.dataset.val;
+        render();
+      });
+    });
+
     render();
   }
 
@@ -785,17 +885,45 @@ function atualizarDashboard(portalId, periodo, categoriaFiltro) {
   const dd = DASH_DATA[portalId];
   if (!dd) return;
 
-  const pontos = aggregarPeriodo(dd.mensal, periodo);
-  document.getElementById("dash-chart-linha").innerHTML = barChartSVG(pontos, p.cor);
-  document.getElementById("dash-chart-donut").innerHTML = donutChartSVG(dd.categorias);
+  const categoriaSelecionada = categoriaFiltro && categoriaFiltro !== "todas" ? categoriaFiltro : null;
+  const serie = serieCategoria(dd, categoriaSelecionada);
+  const pontos = aggregarPeriodo(serie, periodo);
+  const idxSel = categoriaSelecionada ? dd.categorias.findIndex(c => c.label === categoriaSelecionada) : -1;
+  const corEvolucao = idxSel >= 0 ? corCategoria(idxSel) : p.cor;
+
+  const elLinha = document.getElementById("dash-chart-linha");
+  elLinha.innerHTML = dashState.tipoEvolucao === "line"
+    ? lineChartSVG(pontos, corEvolucao)
+    : barChartSVG(pontos, corEvolucao);
+
+  const elComp = document.getElementById("dash-chart-donut");
+  elComp.innerHTML = dashState.tipoComp === "ranking"
+    ? rankingChartSVG(dd.categorias, categoriaSelecionada)
+    : donutChartSVG(dd.categorias, categoriaSelecionada);
+
+  function alternarFiltro(clicado) {
+    const selCategoria = document.getElementById("dash-filtro-categoria");
+    const novoValor = selCategoria.value === clicado ? "todas" : clicado;
+    selCategoria.value = novoValor;
+    atualizarDashboard(portalId, document.getElementById("dash-filtro-periodo").value, novoValor);
+  }
+
+  elComp.querySelectorAll("[data-cat]").forEach(el => {
+    el.addEventListener("click", () => alternarFiltro(el.dataset.cat));
+  });
 
   const total = dd.categorias.reduce((a, c) => a + c.valor, 0) || 1;
   const corpo = dd.categorias.map(c => {
     const pct = ((c.valor / total) * 100).toFixed(1);
-    const dim = categoriaFiltro !== "todas" && categoriaFiltro !== c.label;
-    return `<tr class="${dim ? "dim" : ""}"><td>${c.label}</td><td class="num">${c.valor}</td><td class="num">${pct}%</td></tr>`;
+    const dim = categoriaSelecionada && categoriaSelecionada !== c.label;
+    const sel = categoriaSelecionada === c.label;
+    return `<tr class="${dim ? "dim" : ""}" data-cat="${c.label}" style="${sel ? "font-weight:600;" : ""}"><td>${c.label}</td><td class="num">${c.valor}</td><td class="num">${pct}%</td></tr>`;
   }).join("");
-  document.getElementById("dash-tabela-body").innerHTML = corpo;
+  const tbody = document.getElementById("dash-tabela-body");
+  tbody.innerHTML = corpo;
+  tbody.querySelectorAll("tr[data-cat]").forEach(tr => {
+    tr.addEventListener("click", () => alternarFiltro(tr.dataset.cat));
+  });
 }
 
 function fecharTela() {
