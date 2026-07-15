@@ -151,6 +151,9 @@ body{background:var(--paper);color:var(--carvao);font-family:'IBM Plex Sans',san
 .dash-toggle-btn{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.04em;background:var(--paper);color:var(--carvao);border:none;padding:5px 9px;cursor:pointer}
 .dash-toggle-btn+.dash-toggle-btn{border-left:1.5px solid var(--carvao)}
 .dash-toggle-btn.active{background:var(--carvao);color:var(--paper)}
+.dash-export-row{display:flex;justify-content:flex-end;margin-bottom:16px}
+.btn-exportar-xlsx{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.06em;background:var(--tinta);color:var(--paper);border:2px solid var(--carvao);padding:9px 16px;cursor:pointer}
+.btn-exportar-xlsx:hover{background:var(--mostarda);color:var(--carvao)}
 
 footer{border-top:3px solid var(--carvao);padding:30px 24px;max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
 footer .selo{width:58px;height:58px;color:var(--carvao)}
@@ -782,6 +785,9 @@ function abrirTela(id) {
           </select>
         </div>
       </div>
+      <div class="dash-export-row">
+        <button class="btn-exportar-xlsx" id="btn-exportar-xlsx">⬇ EXPORTAR PARA EXCEL</button>
+      </div>
       <div class="dash-charts">
         <div class="dash-chart-box">
           <div class="dash-chart-head">
@@ -846,6 +852,8 @@ function abrirTela(id) {
     const render = () => atualizarDashboard(p.id, selPeriodo.value, selCategoria.value);
     selPeriodo.addEventListener("change", render);
     selCategoria.addEventListener("change", render);
+    const btnExportar = document.getElementById("btn-exportar-xlsx");
+    if (btnExportar) btnExportar.addEventListener("click", () => exportarDashboardExcel(p.id));
 
     document.querySelectorAll("#toggle-tipo-evolucao .dash-toggle-btn").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -929,6 +937,382 @@ function fecharTela() {
 voltarBtn.addEventListener("click", fecharTela);
 document.getElementById("brand-home-btn").addEventListener("click", fecharTela);
 
+</script>
+<script>
+// ============================================================
+// EXPORTADOR EXCEL — DEPAF
+// Gera um .xlsx nativo (sem dependências externas) a partir dos
+// dados de um portal do dashboard: gráficos reais do Excel +
+// dropdown de Período/Categoria que recalcula tudo via fórmula.
+// ============================================================
+
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(bytes) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+function u16(v) { return [v & 0xFF, (v >>> 8) & 0xFF]; }
+function u32(v) { return [v & 0xFF, (v >>> 8) & 0xFF, (v >>> 16) & 0xFF, (v >>> 24) & 0xFF]; }
+function strBytes(s) { return Array.from(new TextEncoder().encode(s)); }
+
+class ZipBuilder {
+  constructor() { this.files = []; }
+  addFile(name, content) {
+    const bytes = typeof content === "string" ? new TextEncoder().encode(content) : content;
+    this.files.push({ name, bytes });
+  }
+  build() {
+    const DOSTIME = 0, DOSDATE = 0x2158;
+    let localChunks = [], centralChunks = [], offset = 0;
+    for (const f of this.files) {
+      const nameBytes = strBytes(f.name);
+      const crc = crc32(f.bytes);
+      const size = f.bytes.length;
+      const local = [
+        ...u32(0x04034b50), ...u16(20), ...u16(0), ...u16(0),
+        ...u16(DOSTIME), ...u16(DOSDATE),
+        ...u32(crc), ...u32(size), ...u32(size),
+        ...u16(nameBytes.length), ...u16(0), ...nameBytes
+      ];
+      const localHeaderOffset = offset;
+      localChunks.push(new Uint8Array(local));
+      localChunks.push(f.bytes);
+      offset += local.length + f.bytes.length;
+      const central = [
+        ...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0), ...u16(0),
+        ...u16(DOSTIME), ...u16(DOSDATE),
+        ...u32(crc), ...u32(size), ...u32(size),
+        ...u16(nameBytes.length), ...u16(0), ...u16(0),
+        ...u16(0), ...u16(0), ...u32(0),
+        ...u32(localHeaderOffset), ...nameBytes
+      ];
+      centralChunks.push(new Uint8Array(central));
+    }
+    const centralStart = offset;
+    let centralSize = 0;
+    for (const c of centralChunks) centralSize += c.length;
+    const eocd = new Uint8Array([
+      ...u32(0x06054b50), ...u16(0), ...u16(0),
+      ...u16(this.files.length), ...u16(this.files.length),
+      ...u32(centralSize), ...u32(centralStart), ...u16(0)
+    ]);
+    const total = offset + centralSize + eocd.length;
+    const out = new Uint8Array(total);
+    let p = 0;
+    for (const chunk of localChunks) { out.set(chunk, p); p += chunk.length; }
+    for (const chunk of centralChunks) { out.set(chunk, p); p += chunk.length; }
+    out.set(eocd, p);
+    return out;
+  }
+}
+
+function xmlEsc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+}
+function colLetter(n) {
+  let s = "";
+  while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); }
+  return s;
+}
+function ref(col, row) { return colLetter(col) + row; }
+
+function buildRow(rowIndex, cells, boldCols) {
+  boldCols = boldCols || [];
+  let xml = `<row r="${rowIndex}">`;
+  cells.forEach(c => {
+    if (c.value === undefined || c.value === null || c.value === "") return;
+    const cellRef = ref(c.col, rowIndex);
+    const style = boldCols.includes(c.col) ? ` s="1"` : "";
+    if (c.type === "n") {
+      xml += `<c r="${cellRef}"${style}><v>${c.value}</v></c>`;
+    } else if (c.type === "s") {
+      xml += `<c r="${cellRef}" t="inlineStr"${style}><is><t xml:space="preserve">${xmlEsc(c.value)}</t></is></c>`;
+    } else if (c.type === "f") {
+      xml += `<c r="${cellRef}" t="str"${style}><f>${xmlEsc(c.value)}</f></c>`;
+    }
+  });
+  xml += `</row>`;
+  return xml;
+}
+
+const XLSX_CONTENT_TYPES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>
+<Override PartName="/xl/charts/chart1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>
+<Override PartName="/xl/charts/chart2.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>
+</Types>`;
+
+const XLSX_RELS_ROOT = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`;
+
+const XLSX_STYLES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>
+<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>
+<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="2">
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+</cellXfs>
+<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+</styleSheet>`;
+
+function xlsxWorkbookXml() {
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<fileVersion appName="xl"/>
+<workbookPr/>
+<calcPr calcId="0" fullCalcOnLoad="1"/>
+<sheets>
+<sheet name="Dashboard" sheetId="1" r:id="rId1"/>
+<sheet name="Dados" sheetId="2" r:id="rId2"/>
+</sheets>
+</workbook>`;
+}
+const XLSX_WORKBOOK_RELS = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>
+<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+</Relationships>`;
+
+const XLSX_SHEET1_RELS = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/>
+</Relationships>`;
+
+const XLSX_DRAWING_RELS = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="../charts/chart1.xml"/>
+<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="../charts/chart2.xml"/>
+</Relationships>`;
+
+function xlsxDrawingXml() {
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<xdr:twoCellAnchor>
+<xdr:from><xdr:col>3</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>0</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>
+<xdr:to><xdr:col>12</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>18</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>
+<xdr:graphicFrame macro="">
+<xdr:nvGraphicFramePr><xdr:cNvPr id="2" name="Grafico Evolucao"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr>
+<xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm>
+<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart">
+<c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:id="rId1"/>
+</a:graphicData></a:graphic>
+</xdr:graphicFrame>
+<xdr:clientData/>
+</xdr:twoCellAnchor>
+<xdr:twoCellAnchor>
+<xdr:from><xdr:col>3</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>18</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>
+<xdr:to><xdr:col>12</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>36</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>
+<xdr:graphicFrame macro="">
+<xdr:nvGraphicFramePr><xdr:cNvPr id="3" name="Grafico Composicao"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr>
+<xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm>
+<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart">
+<c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:id="rId2"/>
+</a:graphicData></a:graphic>
+</xdr:graphicFrame>
+<xdr:clientData/>
+</xdr:twoCellAnchor>
+</xdr:wsDr>`;
+}
+
+function xlsxBarChartXml(unidade) {
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<c:chart>
+<c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>${xmlEsc("Evolução — " + unidade)}</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title>
+<c:autoTitleDeleted val="0"/>
+<c:plotArea><c:layout/>
+<c:barChart>
+<c:barDir val="col"/><c:grouping val="clustered"/><c:varyColors val="0"/>
+<c:ser>
+<c:idx val="0"/><c:order val="0"/>
+<c:tx><c:strRef><c:f>Dashboard!$B$4</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>Valor</c:v></c:pt></c:strCache></c:strRef></c:tx>
+<c:cat><c:strRef><c:f>Dashboard!$A$5:$A$16</c:f></c:strRef></c:cat>
+<c:val><c:numRef><c:f>Dashboard!$B$5:$B$16</c:f></c:numRef></c:val>
+</c:ser>
+<c:axId val="111111111"/><c:axId val="222222222"/>
+</c:barChart>
+<c:catAx><c:axId val="111111111"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:crossAx val="222222222"/></c:catAx>
+<c:valAx><c:axId val="222222222"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="l"/><c:crossAx val="111111111"/></c:valAx>
+</c:plotArea>
+<c:legend><c:legendPos val="b"/></c:legend>
+<c:plotVisOnly val="1"/>
+</c:chart>
+</c:chartSpace>`;
+}
+
+function xlsxPieChartXml(nCategorias) {
+  const last = nCategorias + 1;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<c:chart>
+<c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>Composição por categoria</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title>
+<c:autoTitleDeleted val="0"/>
+<c:plotArea><c:layout/>
+<c:pieChart>
+<c:varyColors val="1"/>
+<c:ser>
+<c:idx val="0"/><c:order val="0"/>
+<c:cat><c:strRef><c:f>Dados!$J$2:$J$${last}</c:f></c:strRef></c:cat>
+<c:val><c:numRef><c:f>Dados!$K$2:$K$${last}</c:f></c:numRef></c:val>
+</c:ser>
+</c:pieChart>
+</c:plotArea>
+<c:legend><c:legendPos val="b"/></c:legend>
+<c:plotVisOnly val="1"/>
+</c:chart>
+</c:chartSpace>`;
+}
+
+const XLSX_MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+function xlsxSerieCategoria(dd, catLabel) {
+  if (!catLabel) return dd.mensal;
+  const total = dd.categorias.reduce((a, c) => a + c.valor, 0) || 1;
+  const cat = dd.categorias.find(c => c.label === catLabel);
+  if (!cat) return dd.mensal;
+  const frac = cat.valor / total;
+  return dd.mensal.map(v => Math.round(v * frac * 100) / 100);
+}
+function xlsxTrimestral(mensal) {
+  const out = [];
+  for (let i = 0; i < 12; i += 3) {
+    const soma = mensal.slice(i, i + 3).reduce((a, b) => a + b, 0);
+    out.push(Math.round((soma / 3) * 100) / 100);
+  }
+  return out;
+}
+function xlsxAnual(mensal) {
+  const soma = mensal.reduce((a, b) => a + b, 0);
+  return Math.round((soma / 12) * 100) / 100;
+}
+
+function xlsxBuildDadosSheet(dd) {
+  const cats = dd.categorias.map(c => c.label);
+  const header = ["Todas", ...cats];
+  const nCols = header.length;
+  const matrizMensal = header.map(label => xlsxSerieCategoria(dd, label === "Todas" ? null : label));
+  const matrizTrim = matrizMensal.map(serie => xlsxTrimestral(serie));
+  const matrizAnual = matrizMensal.map(serie => xlsxAnual(serie));
+
+  let rows = "";
+  rows += buildRow(1, [{ col: 1, type: "s", value: "Mês" }, ...header.map((h, i) => ({ col: 2 + i, type: "s", value: h })),
+    { col: 10, type: "s", value: "Categoria" }, { col: 11, type: "s", value: "Valor" }]);
+  for (let m = 0; m < 12; m++) {
+    const cells = [{ col: 1, type: "s", value: XLSX_MESES[m] }];
+    for (let c = 0; c < nCols; c++) cells.push({ col: 2 + c, type: "n", value: matrizMensal[c][m] });
+    rows += buildRow(2 + m, cells);
+  }
+  dd.categorias.forEach((c, i) => {
+    rows += buildRow(2 + i, [{ col: 10, type: "s", value: c.label }, { col: 11, type: "n", value: c.valor }]);
+  });
+  rows += buildRow(15, [{ col: 1, type: "s", value: "Trim" }, ...header.map((h, i) => ({ col: 2 + i, type: "s", value: h }))]);
+  for (let t = 0; t < 4; t++) {
+    const cells = [{ col: 1, type: "s", value: "T" + (t + 1) }];
+    for (let c = 0; c < nCols; c++) cells.push({ col: 2 + c, type: "n", value: matrizTrim[c][t] });
+    rows += buildRow(16 + t, cells);
+  }
+  rows += buildRow(21, [{ col: 1, type: "s", value: "Anual" }, ...header.map((h, i) => ({ col: 2 + i, type: "s", value: h }))]);
+  {
+    const cells = [{ col: 1, type: "s", value: "Ano" }];
+    for (let c = 0; c < nCols; c++) cells.push({ col: 2 + c, type: "n", value: matrizAnual[c] });
+    rows += buildRow(22, cells);
+  }
+
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheetViews><sheetView workbookViewId="0"/></sheetViews>
+<sheetFormatPr defaultRowHeight="15"/>
+<cols><col min="1" max="1" width="12" customWidth="1"/><col min="10" max="10" width="30" customWidth="1"/></cols>
+<sheetData>${rows}</sheetData>
+</worksheet>`;
+}
+
+function xlsxBuildDashboardSheet(dd) {
+  const cats = dd.categorias.map(c => c.label);
+  const catListaValidacao = ["Todas", ...cats].join(",");
+  const colHeaderEnd = colLetter(1 + 1 + cats.length);
+
+  let rows = "";
+  rows += buildRow(1, [{ col: 1, type: "s", value: "Período:" }, { col: 2, type: "s", value: "Mensal" }], [1]);
+  rows += buildRow(2, [{ col: 1, type: "s", value: "Categoria:" }, { col: 2, type: "s", value: "Todas" }], [1]);
+  rows += buildRow(4, [{ col: 1, type: "s", value: "Rótulo" }, { col: 2, type: "s", value: "Valor" }], [1, 2]);
+
+  for (let i = 0; i < 12; i++) {
+    const r = 5 + i;
+    const labelF = `IF($B$1="Mensal",INDEX(Dados!$A$2:$A$13,ROW()-4),IF($B$1="Trimestral",IF(ROW()-4<=4,INDEX(Dados!$A$16:$A$19,ROW()-4),""),IF(ROW()-4=1,Dados!$A$22,"")))`;
+    const valF = `IF($B$1="Mensal",INDEX(Dados!$B$2:$${colHeaderEnd}$13,ROW()-4,MATCH($B$2,Dados!$B$1:$${colHeaderEnd}$1,0)),IF($B$1="Trimestral",IF(ROW()-4<=4,INDEX(Dados!$B$16:$${colHeaderEnd}$19,ROW()-4,MATCH($B$2,Dados!$B$1:$${colHeaderEnd}$1,0)),""),IF(ROW()-4=1,INDEX(Dados!$B$22:$${colHeaderEnd}$22,1,MATCH($B$2,Dados!$B$1:$${colHeaderEnd}$1,0)),"")))`;
+    rows += buildRow(r, [{ col: 1, type: "f", value: labelF }, { col: 2, type: "f", value: valF }]);
+  }
+
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheetViews><sheetView tabSelected="1" workbookViewId="0"/></sheetViews>
+<sheetFormatPr defaultRowHeight="15"/>
+<cols><col min="1" max="1" width="26" customWidth="1"/><col min="2" max="2" width="16" customWidth="1"/></cols>
+<sheetData>${rows}</sheetData>
+<dataValidations count="2">
+<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" sqref="B1"><formula1>"Mensal,Trimestral,Anual"</formula1></dataValidation>
+<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" sqref="B2"><formula1>"${xmlEsc(catListaValidacao)}"</formula1></dataValidation>
+</dataValidations>
+<drawing r:id="rId1"/>
+</worksheet>`;
+}
+
+function xlsxBuildWorkbookBytes(dd) {
+  const zip = new ZipBuilder();
+  zip.addFile("[Content_Types].xml", XLSX_CONTENT_TYPES);
+  zip.addFile("_rels/.rels", XLSX_RELS_ROOT);
+  zip.addFile("xl/workbook.xml", xlsxWorkbookXml());
+  zip.addFile("xl/_rels/workbook.xml.rels", XLSX_WORKBOOK_RELS);
+  zip.addFile("xl/styles.xml", XLSX_STYLES);
+  zip.addFile("xl/worksheets/sheet1.xml", xlsxBuildDashboardSheet(dd));
+  zip.addFile("xl/worksheets/_rels/sheet1.xml.rels", XLSX_SHEET1_RELS);
+  zip.addFile("xl/worksheets/sheet2.xml", xlsxBuildDadosSheet(dd));
+  zip.addFile("xl/drawings/drawing1.xml", xlsxDrawingXml());
+  zip.addFile("xl/drawings/_rels/drawing1.xml.rels", XLSX_DRAWING_RELS);
+  zip.addFile("xl/charts/chart1.xml", xlsxBarChartXml(dd.unidade));
+  zip.addFile("xl/charts/chart2.xml", xlsxPieChartXml(dd.categorias.length));
+  return zip.build();
+}
+
+// ---------- função pública, chamada pelo botão "Exportar Excel" ----------
+function exportarDashboardExcel(portalId) {
+  const p = PORTAIS.find(x => x.id === portalId);
+  const dd = DASH_DATA[portalId];
+  if (!p || !dd) return;
+  const bytes = xlsxBuildWorkbookBytes(dd);
+  const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `depaf_dashboard_${portalId}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 </script>
 </body>
 </html>
