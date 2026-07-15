@@ -242,7 +242,7 @@ const ICONS = {
 };
 
 function seloSVG(label = "DEPAF", sub = "PROTOCOLO") {
-  return `<svg viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" xmlns="http://www.w3.org/2000/svg">${grid}
+  return `<svg viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" xmlns="http://www.w3.org/2000/svg">
   <polygon points="35,10 85,10 110,35 110,85 85,110 35,110 10,85 10,35" />
   <polygon points="40,18 80,18 102,40 102,80 80,102 40,102 18,80 18,40" />
   <text x="60" y="56" text-anchor="middle" font-family="monospace" font-size="16" letter-spacing="2" fill="currentColor" stroke="none" font-weight="700">${label}</text>
@@ -253,7 +253,7 @@ function seloSVG(label = "DEPAF", sub = "PROTOCOLO") {
 
 function cotaHorizontalSVG(value = "64,00", width = 240) {
   const w = width;
-  return `<svg viewBox="0 0 ${w} 28" width="${w}" height="28" fill="none" stroke="currentColor" stroke-width="1.25" xmlns="http://www.w3.org/2000/svg">${grid}
+  return `<svg viewBox="0 0 ${w} 28" width="${w}" height="28" fill="none" stroke="currentColor" stroke-width="1.25" xmlns="http://www.w3.org/2000/svg">
   <line x1="4" y1="18" x2="${w - 4}" y2="18" />
   <line x1="4" y1="10" x2="4" y2="26" />
   <line x1="${w - 4}" y1="10" x2="${w - 4}" y2="26" />
@@ -264,354 +264,20 @@ function cotaHorizontalSVG(value = "64,00", width = 240) {
 </svg>`;
 }
 
-</script>
-<script>
-// Dados do dossiê DEPAF — modelo de portal (brasão central + telas dedicadas).
-// "exemplo": true → dado fictício ilustrativo, marcado na tela e a ser substituído.
-// "exemplo": false (ou ausente) → informação factual (lei / portfólio de projetos).
-
-const PORTAIS = [
-  {
-    id: "pessoal",
-    label: "Pessoal",
-    icon: "competencia_folha_pagamento",
-    cor: "var(--mostarda)",
-    artigos: ["I"],
-    intro: "Elabora a folha de pagamento e controla a lotação e vacância dos cargos permanentes e temporários da Polícia Civil.",
-    dados: [
-      { rotulo: "Servidores lotados no DEPAF", valor: "312", exemplo: true },
-      { rotulo: "Cargos em vacância", valor: "28", exemplo: true },
-      { rotulo: "Admissões no último concurso", valor: "45", exemplo: true },
-      { rotulo: "Coordenador do setor", valor: "A preencher", exemplo: false, pendente: true }
-    ]
-  },
-  {
-    id: "normas",
-    label: "Normas e Modernização",
-    icon: "competencia_normas",
-    cor: "var(--terracota)",
-    artigos: ["II", "VI"],
-    intro: "Redige decretos, títulos, normas e procedimentos, e conduz a modernização administrativa em articulação com a SSP.",
-    dados: [
-      { rotulo: "Normas emitidas no ano", valor: "64", exemplo: true },
-      { rotulo: "Projetos de modernização em curso", valor: "3", exemplo: true },
-      { rotulo: "Coordenador do setor", valor: "A preencher", exemplo: false, pendente: true }
-    ]
-  },
-  {
-    id: "patrimonio",
-    label: "Patrimônio e Bens",
-    icon: "competencia_tombamento",
-    cor: "var(--oliva)",
-    artigos: ["III", "VII"],
-    intro: "Cadastra, tomba e controla bens e material de consumo — inclui material de escritório e de expediente das unidades — além de guardar bens apreendidos ou arrecadados vinculados a ocorrências. Armamento e munição não entram aqui: ficam com a Coordenação de Fiscalização de Produtos Controlados (CFPC), unidade à parte do DEPAF.",
-    dados: [
-      { rotulo: "Itens tombados no cadastro", valor: "1.842", exemplo: true },
-      { rotulo: "Requisições de material de expediente no mês", valor: "57", exemplo: true },
-      { rotulo: "Bens apreendidos sob guarda", valor: "96", exemplo: true },
-      { rotulo: "Itens abaixo do estoque mínimo", valor: "12", exemplo: true },
-      { rotulo: "Tempo médio de atendimento do pedido", valor: "9 dias", exemplo: true },
-      { rotulo: "Atendimento — unidades da capital", valor: "6 dias", exemplo: true },
-      { rotulo: "Atendimento — unidades do interior", valor: "17 dias", exemplo: true },
-      { rotulo: "Saldo consumido da Ata de Registro de Preços vigente", valor: "48%", exemplo: true },
-      { rotulo: "Classe A — reposição mensal", valor: "Munição, combustível, perícia", exemplo: true },
-      { rotulo: "Classe C — reposição trimestral/semestral", valor: "Material de escritório comum", exemplo: true },
-      { rotulo: "Coordenador do setor", valor: "A preencher", exemplo: false, pendente: true }
-    ]
-  },
-  {
-    id: "frota",
-    label: "Frota",
-    icon: "viatura",
-    cor: "var(--oliva)",
-    artigos: ["IV"],
-    intro: "Mantém, abastece e planeja a expansão da frota de viaturas, prevendo renovação e adequação ao serviço.",
-    dados: [
-      { rotulo: "Frota total", valor: "187 viaturas", exemplo: true },
-      { rotulo: "Compacto / passeio", valor: "94 unidades", exemplo: true },
-      { rotulo: "SUV / utilitário", valor: "68 unidades", exemplo: true },
-      { rotulo: "Especial / blindado", valor: "25 unidades", exemplo: true },
-      { rotulo: "Moto", valor: "A preencher", exemplo: false, pendente: true },
-      { rotulo: "Idade média da frota", valor: "6 anos", exemplo: true },
-      { rotulo: "Viaturas ativas", valor: "94%", exemplo: true },
-      { rotulo: "Em manutenção no momento", valor: "9 viaturas", exemplo: true },
-      { rotulo: "Tempo médio parado em manutenção", valor: "5 dias", exemplo: true },
-      { rotulo: "Taxa de renovação anual", valor: "8%", exemplo: true },
-      { rotulo: "Custo médio de manutenção por viatura/ano", valor: "R$ 6.200,00", exemplo: true },
-      { rotulo: "Aquisição — compra direta", valor: "62%", exemplo: true },
-      { rotulo: "Aquisição — convênio federal", valor: "31%", exemplo: true },
-      { rotulo: "Aquisição — doação", valor: "7%", exemplo: true },
-      { rotulo: "Coordenador do setor", valor: "A preencher", exemplo: false, pendente: true }
-    ]
-  },
-  {
-    id: "infraestrutura",
-    label: "Infraestrutura",
-    icon: "predio",
-    cor: "var(--oliva)",
-    artigos: ["V"],
-    intro: "Coordena portaria, recepção, segurança patrimonial, limpeza, abastecimento de energia e água, e a manutenção predial das instalações e dependências.",
-    dados: [
-      { rotulo: "Unidades sob manutenção ativa", valor: "14", exemplo: true },
-      { rotulo: "Chamados de manutenção no mês", valor: "38", exemplo: true },
-      { rotulo: "Coordenador do setor", valor: "A preencher", exemplo: false, pendente: true }
-    ]
-  },
-  {
-    id: "orcamento",
-    label: "Orçamento e Finanças",
-    icon: "moeda",
-    cor: "var(--tinta)",
-    artigos: ["VIII", "IX"],
-    intro: "Programa, orça, acompanha e executa a administração financeira e contábil, em articulação com o sistema estadual.",
-    dados: [
-      { rotulo: "Orçamento vigente (LOA)", valor: "R$ 4.200.000,00", exemplo: true },
-      { rotulo: "Cota liberada no período", valor: "R$ 3.150.000,00", exemplo: true },
-      { rotulo: "Valor empenhado", valor: "R$ 2.780.000,00", exemplo: true },
-      { rotulo: "Valor liquidado", valor: "R$ 2.410.000,00", exemplo: true },
-      { rotulo: "Valor pago", valor: "R$ 2.190.000,00", exemplo: true },
-      { rotulo: "Execução no período (pago/orçado)", valor: "52%", exemplo: true },
-      { rotulo: "Custeio", valor: "74%", exemplo: true },
-      { rotulo: "Investimento", valor: "26%", exemplo: true },
-      { rotulo: "Fonte — Tesouro estadual", valor: "83%", exemplo: true },
-      { rotulo: "Fonte — Convênio federal (Senasp/FNSP)", valor: "17%", exemplo: true },
-      { rotulo: "Maior categoria de gasto", valor: "Pessoal e encargos", exemplo: true },
-      { rotulo: "Coordenador do setor", valor: "A preencher", exemplo: false, pendente: true }
-    ]
-  },
-  {
-    id: "projetos",
-    label: "Projetos",
-    icon: "projeto_sac",
-    cor: "var(--terracota)",
-    artigos: [],
-    intro: "Projetos institucionais do DEPAF no Portfólio PCBA 2026–2027.",
-    projetos: [
-      {
-        titulo: "Aqui tem SAC",
-        icon: "projeto_sac",
-        texto: "Estruturação do modelo de atendimento no padrão SAC nas delegacias.",
-        patrocinador: "DPC Cristiano Marcos Pitangueira Mangueira",
-        gestor: "DPC Ilma Leonor Magarão Paiva",
-        gerente: "EPC Kristianne Lima Moscovits",
-        status: "Em execução",
-        progresso: 40,
-        exemplo: true
-      },
-      {
-        titulo: "Salas de Investigação Criminal",
-        icon: "projeto_investigacao",
-        texto: "Modernização e estruturação das salas de investigação criminal.",
-        patrocinador: "DPC Cristiano Marcos Pitangueira Mangueira",
-        gestor: "DPC Ilma Leonor Magarão Paiva",
-        gerente: "EPC Kristianne Lima Moscovits",
-        status: "Planejamento",
-        progresso: 15,
-        exemplo: true
-      },
-      {
-        titulo: "Requalificação da Rede Física",
-        icon: "projeto_rede",
-        texto: "Requalificação da rede física da Polícia Civil em todo o estado.",
-        patrocinador: "DPC Cristiano Marcos Pitangueira Mangueira",
-        gestor: "DPC Ilma Leonor Magarão Paiva",
-        gerente: "EPC Kristianne Lima Moscovits",
-        status: "Em execução",
-        progresso: 55,
-        exemplo: true
-      }
-    ]
-  },
-  {
-    id: "indicadores",
-    label: "Indicadores",
-    icon: "competencia_balanca",
-    cor: "var(--mostarda)",
-    artigos: [],
-    intro: "Visão consolidada — espaço pronto para os indicadores reais de acompanhamento.",
-    dados: [
-      { rotulo: "Execução orçamentária", valor: "52%", exemplo: true },
-      { rotulo: "Frota ativa", valor: "94%", exemplo: true },
-      { rotulo: "Progresso médio dos projetos", valor: "37%", exemplo: true },
-      { rotulo: "Itens de estoque abaixo do mínimo", valor: "12", exemplo: true },
-      { rotulo: "Chamados de manutenção em aberto", valor: "9", exemplo: true }
-    ]
-  }
-];
-
-// Diretor e nota institucional, usados na tela inicial.
-const DIRECAO = {
-  nome: "Del. Cristiano Marcos Pitangueira Mangueira",
-  cargo: "Diretor do DEPAF",
-  nota: "Patrocinador dos projetos institucionais do DEPAF no Portfólio 2026–2027."
-};
-
-// ---------- dados do dashboard (exemplo — substituir pela base real) ----------
-const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
-
-const DASH_DATA = {
-  pessoal: {
-    mensal: [286,291,298,301,305,309,312,308,310,312,314,312],
-    unidade: "servidores",
-    categorias: [
-      { label: "Efetivo (cargo permanente)", valor: 210 },
-      { label: "Temporário/REDA", valor: 62 },
-      { label: "Comissionado", valor: 40 }
-    ]
-  },
-  normas: {
-    mensal: [4,5,3,6,7,5,6,4,5,8,6,5],
-    unidade: "normas emitidas",
-    categorias: [
-      { label: "Portaria", valor: 38 },
-      { label: "Ordem de serviço", valor: 16 },
-      { label: "Instrução normativa", valor: 10 }
-    ]
-  },
-  patrimonio: {
-    mensal: [1620,1655,1680,1702,1735,1760,1780,1795,1810,1822,1835,1842],
-    unidade: "itens tombados",
-    categorias: [
-      { label: "Mobiliário", valor: 640 },
-      { label: "Equip. de informática", valor: 512 },
-      { label: "Material de expediente", valor: 398 },
-      { label: "Bens apreendidos", valor: 96 },
-      { label: "Outros", valor: 196 }
-    ]
-  },
-  frota: {
-    mensal: [178,180,181,183,184,185,186,186,187,187,187,187],
-    unidade: "viaturas",
-    categorias: [
-      { label: "Compacto/passeio", valor: 94 },
-      { label: "SUV/utilitário", valor: 68 },
-      { label: "Especial/blindado", valor: 25 }
-    ]
-  },
-  infraestrutura: {
-    mensal: [30,34,29,41,36,33,38,35,37,40,36,38],
-    unidade: "chamados",
-    categorias: [
-      { label: "Elétrica", valor: 11 },
-      { label: "Hidráulica", valor: 8 },
-      { label: "Climatização", valor: 9 },
-      { label: "Segurança/portaria", valor: 6 },
-      { label: "Outros", valor: 4 }
-    ]
-  },
-  orcamento: {
-    mensal: [165,172,180,188,195,201,208,214,219,224,228,231],
-    unidade: "R$ mil pagos",
-    categorias: [
-      { label: "Pessoal e encargos", valor: 1240 },
-      { label: "Custeio geral", valor: 560 },
-      { label: "Investimento", valor: 390 }
-    ]
-  },
-  projetos: {
-    mensal: [12,15,18,20,24,27,30,32,34,36,38,40],
-    unidade: "% progresso médio",
-    categorias: [
-      { label: "Aqui tem SAC", valor: 40 },
-      { label: "Salas de Investigação Criminal", valor: 15 },
-      { label: "Requalificação da Rede Física", valor: 55 }
-    ]
-  },
-  indicadores: {
-    mensal: [48,49,50,50,51,51,52,52,52,52,52,52],
-    unidade: "% execução orçamentária",
-    categorias: [
-      { label: "Pessoal", valor: 100 },
-      { label: "Normas e Modernização", valor: 100 },
-      { label: "Patrimônio e Bens", valor: 100 },
-      { label: "Frota", valor: 94 },
-      { label: "Infraestrutura", valor: 100 },
-      { label: "Orçamento e Finanças", valor: 52 }
-    ]
-  }
-};
-function sparklineSVG(valores, cor){
-  const w=140,h=26,pad=2;
-  const max=Math.max(...valores), min=Math.min(...valores);
-  const range=(max-min)||1;
-  const step=(w-pad*2)/(valores.length-1||1);
-  let d="";
-  valores.forEach((v,i)=>{
-    const x=pad+i*step, y=h-pad-((v-min)/range)*(h-pad*2);
-    d+=(i===0?"M":"L")+x.toFixed(1)+" "+y.toFixed(1)+" ";
-  });
-  return `<svg class="kpi-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="${d}" stroke="${cor}"/></svg>`;
-}
-function deltaHTML(atual, anterior){
-  if(!anterior) return `<span class="kpi-delta flat">— sem comparativo</span>`;
-  const pct=((atual-anterior)/Math.abs(anterior))*100;
-  const cls = pct>0.5?"up":pct<-0.5?"down":"flat";
-  const seta = pct>0.5?"▲":pct<-0.5?"▼":"—";
-  return `<span class="kpi-delta ${cls}">${seta} ${Math.abs(pct).toFixed(1)}% vs mês anterior</span>`;
-}
-function kpiRowSVG(dd, cor){
-  const ultimo = dd.mensal[dd.mensal.length-1];
-  const penultimo = dd.mensal[dd.mensal.length-2];
-  const topCat = [...dd.categorias].sort((a,b)=>b.valor-a.valor)[0];
-  const total = dd.categorias.reduce((a,c)=>a+c.valor,0);
-  return `
-    <div class="kpi-row">
-      <div class="kpi-card">
-        <div class="kpi-label">Último mês</div>
-        <div class="kpi-value">${ultimo}</div>
-        ${deltaHTML(ultimo, penultimo)}
-        ${sparklineSVG(dd.mensal, cor)}
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Acumulado 12 meses</div>
-        <div class="kpi-value">${dd.mensal.reduce((a,b)=>a+b,0)}</div>
-        <span class="kpi-delta flat">${dd.unidade}</span>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Categoria líder</div>
-        <div class="kpi-value" style="font-size:20px">${topCat.label}</div>
-        <span class="kpi-delta flat">${((topCat.valor/total)*100).toFixed(0)}% do total</span>
-      </div>
-    </div>`;
-}
-function aggregarPeriodo(mensal, periodo) {
-  if (periodo === "mensal") return mensal.map((v, i) => ({ label: MESES[i], valor: v }));
-  if (periodo === "trimestral") {
-    const out = [];
-    for (let i = 0; i < 12; i += 3) {
-      const soma = mensal.slice(i, i + 3).reduce((a, b) => a + b, 0);
-      out.push({ label: `T${i / 3 + 1}`, valor: Math.round((soma / 3) * 100) / 100 });
-    }
-    return out;
-  }
-  const soma = mensal.reduce((a, b) => a + b, 0);
-  return [{ label: "Ano", valor: Math.round((soma / 12) * 100) / 100 }];
-}
-
-const TONS = ["var(--tinta)", "var(--mostarda)", "var(--terracota)", "var(--oliva)", "#8a8272", "#40392f"];
-function corCategoria(i) { return TONS[i % TONS.length]; }
-
-// devolve a série mensal de UMA categoria, proporcional à sua fatia do total
-function serieCategoria(dd, catLabel) {
-  if (!catLabel || catLabel === "todas") return dd.mensal;
-  const total = dd.categorias.reduce((a, c) => a + c.valor, 0) || 1;
-  const cat = dd.categorias.find(c => c.label === catLabel);
-  if (!cat) return dd.mensal;
-  const frac = cat.valor / total;
-  return dd.mensal.map(v => Math.round(v * frac * 100) / 100);
-}
-
 function barChartSVG(pontos, cor) {
   const w = 520, h = 220, padL = 36, padB = 26, padT = 28, padR = 10;
   const max = Math.max(...pontos.map(p => p.valor), 1);
   const bw = (w - padL - padR) / pontos.length;
-  let bars = "";
+  
+  // CRIANDO O GRID AQUI DENTRO (EXCLUSIVO PARA AS BARRAS)
   let grid = `<g class="chart-grid">`;
   for(let gy=1; gy<=3; gy++){
     const yy = padT + ((h-padT-padB)/4)*gy;
     grid += `<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${w-padR}" y2="${yy.toFixed(1)}"/>`;
   }
   grid += `</g>`;
+
+  let bars = "";
   pontos.forEach((p, i) => {
     const bh = ((h - padT - padB) * p.valor) / max;
     const x = padL + i * bw + bw * 0.18;
@@ -622,6 +288,8 @@ function barChartSVG(pontos, cor) {
     const labelY = Math.max(y - 5, 12);
     bars += `<text x="${(x + bwReal / 2).toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.valor}</text>`;
   });
+  
+  // RETORNANDO O GRID JUNTO COM AS BARRAS
   return `<svg viewBox="0 0 ${w} ${h}" width="100%" xmlns="http://www.w3.org/2000/svg">${grid}${bars}</svg>`;
 }
 
@@ -629,6 +297,15 @@ function lineChartSVG(pontos, cor) {
   const w = 520, h = 220, padL = 36, padB = 26, padT = 28, padR = 10;
   const max = Math.max(...pontos.map(p => p.valor), 1);
   const stepX = (w - padL - padR) / (pontos.length - 1 || 1);
+  
+  // CRIANDO O GRID AQUI DENTRO (EXCLUSIVO PARA AS LINHAS)
+  let grid = `<g class="chart-grid">`;
+  for(let gy=1; gy<=3; gy++){
+    const yy = padT + ((h-padT-padB)/4)*gy;
+    grid += `<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${w-padR}" y2="${yy.toFixed(1)}"/>`;
+  }
+  grid += `</g>`;
+
   let path = "", dots = "", labels = "";
   pontos.forEach((p, i) => {
     const x = padL + i * stepX;
@@ -639,6 +316,8 @@ function lineChartSVG(pontos, cor) {
     const labelY = Math.max(y - 8, 12);
     labels += `<text x="${x.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--carvao)">${p.valor}</text>`;
   });
+  
+  // RETORNANDO O GRID JUNTO COM AS LINHAS
   return `<svg viewBox="0 0 ${w} ${h}" width="100%" xmlns="http://www.w3.org/2000/svg">${grid}<path d="${path}" fill="none" stroke="${cor}" stroke-width="2" />${dots}${labels}</svg>`;
 }
 
@@ -662,7 +341,7 @@ function rankingChartSVG(categorias, selectedLabel) {
       <text x="${labelW + barMaxW + 6}" y="${y + rowH * 0.62}" font-family="monospace" font-size="10" fill="var(--carvao)">${c.valor}</text>
     </g>`;
   });
-  return `<svg viewBox="0 0 ${w} ${h}" width="100%" xmlns="http://www.w3.org/2000/svg">${grid}${rows}</svg>`;
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" xmlns="http://www.w3.org/2000/svg">${rows}</svg>`;
 }
 
 function donutChartSVG(categorias, selectedLabel) {
@@ -688,7 +367,7 @@ function donutChartSVG(categorias, selectedLabel) {
   });
   const catSel = categorias.find(c => c.label === selectedLabel);
   const totalLabel = catSel ? catSel.valor : total;
-  return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">${grid}${fatias}
+  return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">${fatias}
     <text x="${cx}" y="${cy - 3}" text-anchor="middle" font-family="monospace" font-size="18" font-weight="700" fill="var(--carvao)">${totalLabel}</text>
     <text x="${cx}" y="${cy + 13}" text-anchor="middle" font-family="monospace" font-size="8" letter-spacing="1" fill="#6b6353">${catSel ? "SELECIONADO" : "TOTAL"}</text>
   </svg>`;
